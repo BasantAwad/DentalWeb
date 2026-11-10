@@ -178,6 +178,8 @@ dentalChair: {
 Swapping in the real model is a three-line change with no scene, component or
 page code touched. `ASSET_GUIDE.md` documents the full Blender export process.
 
+| `tooth` | `public/models/teeth/tooth.glb` | `placeholder` | 528 KB | Supplied raw mesh: one connected component, 30,000 triangles, no materials, no normals, no UVs. Registered for a future 3D tooth viewer. The tooth selector uses a procedural 2D typodont because a single mesh cannot represent 32 independently selectable teeth. |
+
 ### Why the supplied chair GLB is not the default rendering
 
 `scripts/inspect-glb.mjs` reports:
@@ -202,6 +204,8 @@ rough scan rather than a product render.
 The registry therefore renders a **deliberately composed procedural scene**
 today while keeping the file registered at its final path. `renderMode` makes
 that explicit and reversible.
+
+The same applies to `tooth.glb` and to the not-yet-delivered phantom head.
 
 ---
 

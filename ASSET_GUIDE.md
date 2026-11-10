@@ -16,6 +16,8 @@ public/
       dental-chair.glb          ← your final chair model
     phantom-head/
       phantom-head.glb          ← your final phantom head model
+    teeth/
+      tooth.glb                 ← a single tooth model (optional)
     rooms/
       dummy-head-lab-blueprint.svg   ← extracted room plan (already present)
     equipment/                       ← other equipment models
@@ -375,6 +377,18 @@ node scripts/check-composition.mjs
 
 Update the scene entry in that script when you change a camera framing, so the
 check keeps matching the real configuration.
+
+### 9.6 Currently registered placeholders
+
+| Asset | Path | State |
+|---|---|---|
+| Dental chair | `public/models/dental-chair/dental-chair.glb` | Raw mesh export — no materials, normals or UVs; six disconnected components. Registered, but the composed procedural scene is what renders. |
+| Phantom head | `public/models/phantom-head/phantom-head.glb` | Not delivered yet. The composed procedural scene renders. |
+| Tooth | `public/models/teeth/tooth.glb` | Raw mesh export — one component, 30,000 triangles, no materials or UVs. Registered for a future 3D viewer. |
+| Room | `public/models/rooms/` | No 3D room model. The 2D blueprint is the accurate view. |
+
+The supplied files are usable as a starting point, but the final assets should
+be exported properly as described above.
 
 ---
 
