@@ -31,7 +31,7 @@ export default function RegisterPage() {
 
       // Demo success
       setError('') // clear any previous
-      window.location.href = '/chair-rental'
+      window.location.href = '/services/dental-chair'
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong. Please try again.')
     } finally {
@@ -123,9 +123,9 @@ export default function RegisterPage() {
                 <input type="checkbox" id="terms" className="rounded border-border text-aqua focus:ring-aqua/30" required />
                 <label htmlFor="terms" className="text-[10px] text-muted">
                   I agree to the{' '}
-                  <Link href="#" className="text-aqua hover:underline">Terms of Service</Link>
+                  <Link href="#" className="inline-flex min-h-11 items-center text-aqua hover:underline">Terms of Service</Link>
                   {' '}and{' '}
-                  <Link href="#" className="text-aqua hover:underline">Privacy Policy</Link>
+                  <Link href="#" className="inline-flex min-h-11 items-center text-aqua hover:underline">Privacy Policy</Link>
                 </label>
               </div>
             </div>
@@ -146,7 +146,7 @@ export default function RegisterPage() {
 
           <div className="mt-6 text-center text-sm text-muted">
             Already have an account?{' '}
-            <Link href="/auth/login" className="text-aqua hover:text-aqua-dark font-medium">
+            <Link href="/auth/login" className="inline-flex min-h-11 items-center text-aqua hover:text-aqua-dark font-medium">
               Sign in
             </Link>
           </div>

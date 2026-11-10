@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dental Dummy Head Lab - Architectural Blueprint</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: #0d1527;
+            color: #d1d5db;
+            font-family: system-ui, -apple-system, sans-serif;
+            overflow: hidden;
+            user-select: none;
+        }
+
+        /* Blueprint Grid Pattern */
+        .blueprint-bg {
+            background-color: #0b1326;
+            background-image: 
+                linear-gradient(rgba(30, 80, 160, 0.25) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(30, 80, 160, 0.25) 1px, transparent 1px),
+                linear-gradient(rgba(30, 80, 160, 0.1) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(30, 80, 160, 0.1) 1px, transparent 1px);
+            background-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
+            background-position: -1px -1px, -1px -1px, -1px -1px, -1px -1px;
+        }
+
+        .paper-bg {
+            background-color: #f8fafc;
+            background-image: 
+                linear-gradient(rgba(148, 163, 184, 0.2) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(148, 163, 184, 0.2) 1px, transparent 1px),
+                linear-gradient(rgba(148, 163, 184, 0.08) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(148, 163, 184, 0.08) 1px, transparent 1px);
+            background-size: 100px 100px, 100px 100px, 20px 20px, 20px 20px;
+            background-position: -1px -1px, -1px -1px, -1px -1px, -1px -1px;
+        }
+
+        .blueprint-stroke {
+            stroke: #38bdf8;
+            stroke-linecap: round;
+            stroke-linejoin: round;
+        }
+
+        .paper-theme .blueprint-stroke {
+            stroke: #0f172a;
+        }
+
+        .wall-fill {
+            fill: #1e293b;
+            stroke: #38bdf8;
+            stroke-width: 2.5px;
+        }
+
+        .paper-theme .wall-fill {
+            fill: #334155;
+            stroke: #0f172a;
+            stroke-width: 2.5px;
+        }
+
+        /* SVG Element Glow Effects */
+        .glow-element {
+            filter: drop-shadow(0px 0px 3px rgba(56, 189, 248, 0.4));
+        }
+
+        .paper-theme .glow-element {
+            filter: none;
+        }
+
+        /* Interactive Controls */
+        .glass-panel {
+            background: rgba(15, 23, 42, 0.75);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(56, 189, 248, 0.2);
+        }
+
+        .paper-theme .glass-panel {
+            background: rgba(255, 255, 255, 0.85);
+            border: 1px solid rgba(148, 163, 184, 0.4);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        /* SVG Zoom / Pan Container */
+        #svg-container {
+            width: 100vw;
+            height: 100vh;
+            cursor: grab;
+        }
+
+        #svg-container:active {
+            cursor: grabbing;
+        }
+
+        /* Clean Icon Buttons */
+        .icon-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            transition: all 0.2s ease;
+        }
+
+        .dark-btn {
+            color: #38bdf8;
+            background: rgba(30, 58, 138, 0.3);
+            border: 1px solid rgba(56, 189, 248, 0.3);
+        }
+
+        .dark-btn:hover {
+            background: rgba(56, 189, 248, 0.25);
+            border-color: rgba(56, 189, 248, 0.6);
+        }
+
+        .paper-theme .dark-btn {
+            color: #1e293b;
+            background: rgba(241, 245, 249, 0.9);
+            border: 1px solid rgba(203, 213, 225, 0.8);
+        }
+
+        .paper-theme .dark-btn:hover {
+            background: rgba(226, 232, 240, 1);
+            border-color: rgba(148, 163, 184, 0.8);
+        }
+
+        .btn-active {
+            background: rgba(56, 189, 248, 0.4) !important;
+            border-color: #38bdf8 !important;
+        }
+
+        .paper-theme .btn-active {
+            background: rgba(203, 213, 225, 1) !important;
+            border-color: #0f172a !important;
+        }
+    </style>
+</head>
+<body class="blueprint-bg" id="app-body">
+
+    <!-- Top Floating Toolbar (No Text, Only Graphical Icons) -->
+    <div class="fixed top-6 left-1/2 -translate-x-1/2 z-50 glass-panel p-2 rounded-2xl flex items-center gap-3">
+        <!-- Theme Toggle -->
+        <button id="theme-btn" class="icon-btn dark-btn" title="Toggle Theme">
+            <svg id="theme-icon-dark" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path>
+            </svg>
+            <svg id="theme-icon-light" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path>
+            </svg>
+        </button>
+
+        <div class="w-px h-6 bg-cyan-500/30 opacity-50"></div>
+
+        <!-- Zoom Controls -->
+        <button id="zoom-in" class="icon-btn dark-btn">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+            </svg>
+        </button>
+        <button id="zoom-out" class="icon-btn dark-btn">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"></path>
+            </svg>
+        </button>
+        <button id="zoom-reset" class="icon-btn dark-btn">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
+            </svg>
+        </button>
+
+        <div class="w-px h-6 bg-cyan-500/30 opacity-50"></div>
+
+        <!-- Toggle Layers / Highlights -->
+        <button id="toggle-lighting" class="icon-btn dark-btn btn-active">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z"></path>
+            </svg>
+        </button>
+    </div>
+
+    <!-- Main SVG Render Workspace -->
+    <div id="svg-container">
+        <svg id="blueprint-svg" width="100%" height="100%" viewBox="0 0 1600 1100" preserveAspectRatio="xMidYMid meet">
+            <defs>
+                <!-- Hatching Pattern for Outer Walls -->
+                <pattern id="wall-hatch" width="12" height="12" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+                    <line x1="0" y1="0" x2="0" y2="12" stroke="#38bdf8" stroke-width="1.5" opacity="0.4" />
+                </pattern>
+                <pattern id="wall-hatch-paper" width="12" height="12" patternTransform="rotate(45 0 0)" patternUnits="userSpaceOnUse">
+                    <line x1="0" y1="0" x2="0" y2="12" stroke="#0f172a" stroke-width="1.5" opacity="0.3" />
+                </pattern>
+
+                <!-- Wood Grain Pattern for Central Table -->
+                <pattern id="wood-pattern" width="40" height="40" patternUnits="userSpaceOnUse">
+                    <rect width="40" height="40" fill="none"/>
+                    <path d="M 0,10 Q 10,5 20,10 T 40,10 M 0,25 Q 15,30 25,25 T 40,25" fill="none" stroke="#f59e0b" stroke-width="0.8" opacity="0.3"/>
+                </pattern>
+
+                <!-- Soft Glow Filter for Lights -->
+                <filter id="light-glow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feGaussianBlur stdDeviation="12" result="blur" />
+                    <feComposite in="SourceGraphic" in2="blur" operator="over" />
+                </filter>
+
+                <!-- Phantom Head Reusable Symbol -->
+                <g id="phantom-head-unit">
+                    <!-- Articulated Arm Mounting Mechanism -->
+                    <rect x="-12" y="-4" width="24" height="8" rx="2" fill="#64748b" stroke="#38bdf8" stroke-width="1"/>
+                    <path d="M 0,0 L 0,-22" stroke="#94a3b8" stroke-width="4" stroke-linecap="round"/>
+                    <circle cx="0" cy="-22" r="5" fill="#475569" stroke="#38bdf8" stroke-width="1"/>
+                    <path d="M 0,-22 L 0,-38" stroke="#cbd5e1" stroke-width="3"/>
+                    
+                    <!-- Universal Joint & Ball Clamp -->
+                    <circle cx="0" cy="-38" r="6" fill="#38bdf8" opacity="0.8"/>
+                    
+                    <!-- Torso / Neck Mount Collar -->
+                    <path d="M -16,-46 L 16,-46 L 12,-38 L -12,-38 Z" fill="#475569" stroke="#38bdf8" stroke-width="1"/>
+
+                    <!-- Mannequin Head (Transparent Shell + Teeth/Jaw Structure) -->
+                    <!-- Head Outer Contour (Clear Cranium Silhouette) -->
+                    <path d="M -18,-52 C -24,-62 -22,-88 0,-90 C 22,-88 24,-62 18,-52 C 14,-45 -14,-45 -18,-52 Z" 
+                          fill="rgba(56, 189, 248, 0.12)" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="4,2"/>
+                    
+                    <!-- Model Typodont / Dental Arches (Gums & Teeth) -->
+                    <!-- Upper & Lower Jaw Arch Geometry -->
+                    <path d="M -11,-62 C -11,-76 11,-76 11,-62 C 11,-55 -11,-55 -11,-62 Z" fill="#ef4444" opacity="0.75" stroke="#dc2626" stroke-width="1"/>
+                    <path d="M -8,-64 C -8,-72 8,-72 8,-64 C 8,-60 -8,-60 -8,-64 Z" fill="#ffffff" stroke="#cbd5e1" stroke-width="1"/>
+                    
+                    <!-- Individual Tooth Radii Lines -->
+                    <line x1="-7" y1="-67" x2="-5" y2="-61" stroke="#94a3b8" stroke-width="0.8"/>
+                    <line x1="-3" y1="-70" x2="-2" y2="-60" stroke="#94a3b8" stroke-width="0.8"/>
+                    <line x1="0" y1="-71" x2="0" y2="-60" stroke="#94a3b8" stroke-width="0.8"/>
+                    <line x1="3" y1="-70" x2="2" y2="-60" stroke="#94a3b8" stroke-width="0.8"/>
+                    <line x1="7" y1="-67" x2="5" y2="-61" stroke="#94a3b8" stroke-width="0.8"/>
+
+                    <!-- Facial Mask Contour outline -->
+                    <path d="M -14,-50 C -20,-58 -16,-72 -14,-75" fill="none" stroke="#f59e0b" stroke-width="1.2" opacity="0.8"/>
+                    <path d="M 14,-50 C 20,-58 16,-72 14,-75" fill="none" stroke="#f59e0b" stroke-width="1.2" opacity="0.8"/>
+                </g>
+
+                <!-- Dental Operator Stool Symbol -->
+                <g id="dental-stool">
+                    <!-- 5-Star Caster Base -->
+                    <path d="M 0,0 L 0,-24 M 0,0 L 22.8,-7.4 M 0,0 L 14.1,19.4 M 0,0 L -14.1,19.4 M 0,0 L -22.8,-7.4" stroke="#64748b" stroke-width="2.5" stroke-linecap="round"/>
+                    <circle cx="0" cy="-24" r="3" fill="#38bdf8"/>
+                    <circle cx="22.8" cy="-7.4" r="3" fill="#38bdf8"/>
+                    <circle cx="14.1" cy="19.4" r="3" fill="#38bdf8"/>
+                    <circle cx="-14.1" cy="19.4" r="3" fill="#38bdf8"/>
+                    <circle cx="-22.8" cy="-7.4" r="3" fill="#38bdf8"/>
+                    <!-- Round Cushion Seat -->
+                    <circle cx="0" cy="0" r="16" fill="#0284c7" stroke="#38bdf8" stroke-width="2"/>
+                    <circle cx="0" cy="0" r="12" fill="none" stroke="#38bdf8" stroke-width="1" stroke-dasharray="2,2"/>
+                </g>
+
+                <!-- Articulated Task Lamp Symbol -->
+                <g id="task-lamp">
+                    <circle cx="0" cy="0" r="5" fill="#64748b" stroke="#38bdf8" stroke-width="1"/>
+                    <path d="M 0,0 L 12,-15 L 28,-12" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round"/>
+                    <!-- Lamp Reflector Head -->
+                    <path d="M 24,-20 L 36,-14 L 30,-4 L 18,-10 Z" fill="#38bdf8" opacity="0.8" stroke="#0284c7" stroke-width="1"/>
+                    <!-- Light Projection Cone (Toggled via JS) -->
+                    <polygon points="30,-14 90,-45 80,15" fill="url(#lamp-beam)" class="lamp-light-beam" opacity="0.35"/>
+                </g>
+
+                <!-- Linear Beam Gradient for Light -->
+                <linearGradient id="lamp-beam" x1="0%" y1="0%" x2="100%" y2="0%">
+                    <stop offset="0%" stop-color="#38bdf8" stop-opacity="0.8"/>
+                    <stop offset="100%" stop-color="#38bdf8" stop-opacity="0"/>
+                </linearGradient>
+
+                <!-- Chair Symbol (for central table/demo) -->
+                <g id="demo-chair">
+                    <rect x="-14" y="-14" width="28" height="28" rx="4" fill="#334155" stroke="#38bdf8" stroke-width="1.5"/>
+                    <path d="M -12,10 L 12,10" stroke="#f59e0b" stroke-width="3" stroke-linecap="round"/>
+                </g>
+            </defs>
+
+            <!-- BACKGROUND GRID GROUP -->
+            <g id="grid-subdivision">
+                <!-- Inner Room Dimension Lines & Grid Markings -->
+                <rect x="200" y="150" width="1200" height="800" fill="none" stroke="#38bdf8" stroke-width="0.5" opacity="0.2"/>
+            </g>
+
+            <!-- FLOOR TILES LAYER (From Photo Reference: Light Tiled Floor) -->
+            <g id="floor-tiles" opacity="0.15">
+                <!-- 100x100 Grid representing large floor tiles -->
+                <path d="
+                    M 200,250 L 1400,250 M 200,350 L 1400,350 M 200,450 L 1400,450 M 200,550 L 1400,550 
+                    M 200,650 L 1400,650 M 200,750 L 1400,750 M 200,850 L 1400,850 
+                    M 300,150 L 300,950 M 400,150 L 400,950 M 500,150 L 500,950 M 600,150 L 600,950 
+                    M 700,150 L 700,950 M 800,150 L 800,950 M 900,150 L 900,950 M 1000,150 L 1000,950 
+                    M 1100,150 L 1100,950 M 1200,150 L 1200,950 M 1300,150 L 1300,950
+                " stroke="#38bdf8" stroke-width="1"/>
+            </g>
+
+            <!-- MAIN ROOM WALLS AND ARCHITECTURAL STRUCTURE -->
+            <g id="architectural-walls" class="glow-element">
+                <!-- Outer Wall Outer Boundary -->
+                <!-- Room dimensions: X: 200 to 1400 (Width 1200), Y: 150 to 950 (Height 800) -->
+                <!-- Wall Thickness: 24px -->
+                
+                <!-- Main Wall Polygon with Hatching -->
+                <path d="
+                    M 176,126 L 1424,126 L 1424,974 L 176,974 Z
+                    M 200,150 L 200,950 L 1400,950 L 1400,150 Z
+                " fill="url(#wall-hatch)" class="wall-hatch-target" fill-rule="evenodd"/>
+
+                <!-- Solid Outer Wall Boundary Stroke -->
+                <rect x="176" y="126" width="1248" height="848" fill="none" stroke="#38bdf8" stroke-width="3" class="blueprint-stroke"/>
+                <rect x="200" y="150" width="1200" height="800" fill="none" stroke="#38bdf8" stroke-width="2" class="blueprint-stroke"/>
+
+                <!-- ARCHITECTURAL OPENINGS: WINDOWS AND DOORS -->
+                
+                <!-- 1. Large Window Unit on Left Wall (From Reference Photo) -->
+                <!-- Window Cutout in Wall -->
+                <rect x="170" y="320" width="36" height="260" fill="#0b1326" class="window-cutout-bg"/>
+                <!-- Window Frame & Glass Panes Blueprint Symbol -->
+                <rect x="176" y="320" width="24" height="260" fill="none" stroke="#38bdf8" stroke-width="2"/>
+                <line x1="188" y1="320" x2="188" y2="580" stroke="#38bdf8" stroke-width="1.5"/>
+                <line x1="176" y1="385" x2="200" y2="385" stroke="#38bdf8" stroke-width="1.5"/>
+                <line x1="176" y1="450" x2="200" y2="450" stroke="#38bdf8" stroke-width="1.5"/>
+                <line x1="176" y1="515" x2="200" y2="515" stroke="#38bdf8" stroke-width="1.5"/>
+
+                <!-- 2. Entrance Doorway on Right Wall (Bottom Corner) -->
+                <!-- Door Wall Cutout -->
+                <rect x="1390" y="800" width="36" height="110" fill="#0b1326" class="door-cutout-bg"/>
+                <line x1="1400" y1="800" x2="1400" y2="910" stroke="#0b1326" stroke-width="4" class="door-cutout-line"/>
+                <!-- Door Leaf -->
+                <line x1="1400" y1="800" x2="1300" y2="800" stroke="#38bdf8" stroke-width="3" stroke-linecap="round"/>
+                <!-- Swing Arc Symbol -->
+                <path d="M 1300,800 A 100,100 0 0,0 1400,900" fill="none" stroke="#38bdf8" stroke-width="1.5" stroke-dasharray="4,4"/>
+                <!-- Door Jamb Stops -->
+                <rect x="1394" y="794" width="12" height="8" fill="#38bdf8"/>
+                <rect x="1394" y="904" width="12" height="8" fill="#38bdf8"/>
+            </g>
+
+            <!-- PERIMETER WORKBENCH COUNTERS (U-SHAPED / L-SHAPED ALONG WALLS) -->
+            <!-- Reference: Marble/Granite top peripheral counters with dental simulation setups -->
+            <g id="perimeter-counters">
+                <!-- Counter Top Surface Outer Outline (Depth = 70px) -->
+                <!-- Top Wall Counter -->
+                <path d="M 200,150 L 1400,150 L 1400,220 L 270,220 L 270,950 L 200,950 Z" 
+                      fill="rgba(30, 58, 138, 0.3)" stroke="#38bdf8" stroke-width="2" class="counter-fill"/>
+                
+                <!-- Bottom Wall Counter Section -->
+                <path d="M 450,880 L 1250,880 L 1250,950 L 450,950 Z" 
+                      fill="rgba(30, 58, 138, 0.3)" stroke="#38bdf8" stroke-width="2" class="counter-fill"/>
+
+                <!-- Inner Detail Lines / Counter Edge Bevel -->
+                <path d="M 200,215 L 1395,215" stroke="#38bdf8" stroke-width="1" opacity="0.6"/>
+                <path d="M 265,220 L 265,950" stroke="#38bdf8" stroke-width="1" opacity="0.6"/>
+                <path d="M 450,885 L 1250,885" stroke="#38bdf8" stroke-width="1" opacity="0.6"/>
+
+                <!-- Sink & Sanitation Basin (Corner Element) -->
+                <g id="corner-sink" transform="translate(210, 160)">
+                    <rect x="0" y="0" width="45" height="45" rx="6" fill="#1e293b" stroke="#38bdf8" stroke-width="1.5"/>
+                    <rect x="5" y="5" width="35" height="35" rx="4" fill="none" stroke="#38bdf8" stroke-width="1"/>
+                    <circle cx="22.5" cy="22.5" r="4" fill="#38bdf8"/>
+                    <!-- Faucet Symbol -->
+                    <path d="M 22.5,5 L 22.5,14" stroke="#94a3b8" stroke-width="3" stroke-linecap="round"/>
+                </g>
+            </g>
+
+            <!-- CENTRAL DEMONSTRATION / CONFERENCE WOODEN TABLE -->
+            <!-- Reference: Large rectangular wood table in center of room -->
+            <g id="central-table" transform="translate(520, 420)">
+                <!-- Table Shadow -->
+                <rect x="10" y="10" width="480" height="220" rx="8" fill="#000000" opacity="0.3"/>
+                <!-- Main Tabletop Surface -->
+                <rect x="0" y="0" width="480" height="220" rx="6" fill="rgba(180, 83, 9, 0.25)" stroke="#f59e0b" stroke-width="2.5"/>
+                <!-- Wood Pattern Fill Overlay -->
+                <rect x="0" y="0" width="480" height="220" rx="6" fill="url(#wood-pattern)"/>
+                <!-- Bevel Edge -->
+                <rect x="8" y="8" width="464" height="204" rx="4" fill="none" stroke="#f59e0b" stroke-width="1" opacity="0.5"/>
+                <!-- Central Cable Management / Power Hubs -->
+                <rect x="160" y="95" width="50" height="30" rx="3" fill="#1e293b" stroke="#f59e0b" stroke-width="1"/>
+                <rect x="270" y="95" width="50" height="30" rx="3" fill="#1e293b" stroke="#f59e0b" stroke-width="1"/>
+            </g>
+
+            <!-- CHAIRS AROUND CENTRAL TABLE -->
+            <g id="central-chairs">
+                <!-- Top Row Chairs -->
+                <use href="#demo-chair" x="580" y="380" transform="rotate(180 580 380)"/>
+                <use href="#demo-chair" x="680" y="380" transform="rotate(180 680 380)"/>
+                <use href="#demo-chair" x="780" y="380" transform="rotate(180 780 380)"/>
+                <use href="#demo-chair" x="880" y="380" transform="rotate(180 880 380)"/>
+                <use href="#demo-chair" x="930" y="380" transform="rotate(180 930 380)"/>
+
+                <!-- Bottom Row Chairs -->
+                <use href="#demo-chair" x="580" y="680"/>
+                <use href="#demo-chair" x="680" y="680"/>
+                <use href="#demo-chair" x="780" y="680"/>
+                <use href="#demo-chair" x="880" y="680"/>
+                <use href="#demo-chair" x="930" y="680"/>
+
+                <!-- Side Chairs (Left & Right Ends) -->
+                <use href="#demo-chair" x="480" y="530" transform="rotate(90 480 530)"/>
+                <use href="#demo-chair" x="1030" y="530" transform="rotate(-90 1030 530)"/>
+            </g>
+
+            <!-- DENTAL PHANTOM DUMMY HEAD STATIONS & OPERATOR STOOLS -->
+            <!-- Arranged along top counter, left wall counter, and bottom counter -->
+            <g id="dental-workstations">
+                
+                <!-- TOP COUNTER WORKSTATIONS (Facing Wall/Upwards) -->
+                <!-- Station 1 -->
+                <g transform="translate(360, 220) rotate(180)">
+                    <use href="#phantom-head-unit"/>
+                    <use href="#task-lamp" x="-35" y="-10"/>
+                    <use href="#dental-stool" x="0" y="-110"/>
+                </g>
+                <!-- Station 2 -->
+                <g transform="translate(520, 220) rotate(180)">
+                    <use href="#phantom-head-unit"/>
+                    <use href="#task-lamp" x="-35" y="-10"/>
+                    <use href="#dental-stool" x="0" y="-110"/>
+                </g>
+                <!-- Station 3 -->
+                <g transform="translate(680, 220) rotate(180)">
+                    <use href="#phantom-head-unit"/>
+                    <use href="#task-lamp" x="-35" y="-10"/>
+                    <use href="#dental-stool" x="0" y="-110"/>
+                </g>
+                <!-- Station 4 -->
+                <g transform="translate(840, 220) rotate(180)">
+                    <use href="#phantom-head-unit"/>
+                    <use href="#task-lamp" x="-35" y="-10"/>
+                    <use href="#dental-stool" x="0" y="-110"/>
+                </g>
+                <!-- Station 5 -->
+                <g transform="translate(1000, 220) rotate(180)">
+                    <use href="#phantom-head-unit"/>
+                    <use href="#task-lamp" x="-35" y="-10"/>
+                    <use href="#dental-stool" x="0" y="-110"/>
+                </g>
+                <!-- Station 6 -->
+                <g transform="translate(1160, 220) rotate(180)">
+                    <use href="#phantom-head-unit"/>
+                    <use href="#task-lamp" x="-35" y="-10"/>
+                    <use href="#dental-stool" x="0" y="-110"/>
+                </g>
+                <!-- Station 7 -->
+                <g transform="translate(1320, 220) rotate(180)">
+                    <use href="#phantom-head-unit"/>
+                    <use href="#task-lamp" x="-35" y="-10"/>
+                    <use href="#dental-stool" x="0" y="-110"/>
+                </g>
+
+                <!-- LEFT WALL COUNTER WORKSTATIONS (Facing Left Wall) -->
+                <!-- Station 8 -->
+                <g transform="translate(270, 340) rotate(90)">
+                    <use href="#phantom-head-unit"/>
+                    <use href="#task-lamp" x="-35" y="-10"/>
+                    <use href="#dental-stool" x="0" y="-110"/>
+                </g>
+                <!-- Station 9 -->
+                <g transform="translate(270, 620) rotate(90)">
+                    <use href="#phantom-head-unit"/>
+                    <use href="#task-lamp" x="-35" y="-10"/>
+                    <use href="#dental-stool" x="0" y="-110"/>
+                </g>
+                <!-- Station 10 -->
+                <g transform="translate(270, 760) rotate(90)">
+                    <use href="#phantom-head-unit"/>
+                    <use href="#task-lamp" x="-35" y="-10"/>
+                    <use href="#dental-stool" x="0" y="-110"/>
+                </g>
+
+                <!-- BOTTOM WALL COUNTER WORKSTATIONS (Facing Downward) -->
+                <!-- Station 11 -->
+                <g transform="translate(540, 880) rotate(0)">
+                    <use href="#phantom-head-unit"/>
+                    <use href="#task-lamp" x="-35" y="-10"/>
+                    <use href="#dental-stool" x="0" y="-110"/>
+                </g>
+                <!-- Station 12 -->
+                <g transform="translate(700, 880) rotate(0)">
+                    <use href="#phantom-head-unit"/>
+                    <use href="#task-lamp" x="-35" y="-10"/>
+                    <use href="#dental-stool" x="0" y="-110"/>
+                </g>
+
+                <!-- Station 13 -->
+                <g transform="translate(860, 880) rotate(0)">
+                    <use href="#phantom-head-unit"/>
+                    <use href="#task-lamp" x="-35" y="-10"/>
+                    <use href="#dental-stool" x="0" y="-110"/>
+                </g>
+
+                <!-- Station 14 -->
+                <g transform="translate(1020, 880) rotate(0)">
+                    <use href="#phantom-head-unit"/>
+                    <use href="#task-lamp" x="-35" y="-10"/>
+                    <use href="#dental-stool" x="0" y="-110"/>
+                </g>
+            </g>
+
+            <!-- WALL-MOUNTED EQUIPMENT & DISPLAY MONITORS -->
+            <!-- Reference: Flat screen TV / display monitors on wall & Air Conditioner -->
+            <g id="wall-equipment">
+                <!-- Large Wall Monitor 1 (Center Wall) -->
+                <g transform="translate(720, 136)">
+                    <!-- Screen Bracket & TV Frame -->
+                    <rect x="0" y="0" width="160" height="14" rx="2" fill="#0284c7" stroke="#38bdf8" stroke-width="1.5"/>
+                    <rect x="10" y="3" width="140" height="8" rx="1" fill="#38bdf8" opacity="0.8"/>
+                    <!-- Screen Projection Lines -->
+                    <path d="M 0,14 L -20,40 M 160,14 L 180,40" stroke="#38bdf8" stroke-width="1" stroke-dasharray="2,2" opacity="0.4"/>
+                </g>
+
+                <!-- Secondary Display Monitor 2 (Right Corner Wall) -->
+                <g transform="translate(1120, 136)">
+                    <rect x="0" y="0" width="110" height="14" rx="2" fill="#0284c7" stroke="#38bdf8" stroke-width="1.5"/>
+                    <rect x="8" y="3" width="94" height="8" rx="1" fill="#38bdf8" opacity="0.8"/>
+                </g>
+
+                <!-- Wall Mounted Air Conditioning Unit (HVAC) (From Photo Reference) -->
+                <g transform="translate(420, 132)">
+                    <rect x="0" y="0" width="120" height="18" rx="3" fill="#cbd5e1" stroke="#0284c7" stroke-width="1.5"/>
+                    <line x1="10" y1="14" x2="110" y2="14" stroke="#64748b" stroke-width="2"/>
+                    <!-- Vents -->
+                    <line x1="15" y1="6" x2="45" y2="6" stroke="#94a3b8" stroke-width="1"/>
+                    <!-- Power LED Graphic Indicator -->
+                    <circle cx="105" cy="6" r="1.5" fill="#22c55e"/>
+                </g>
+
+                <!-- Wall Art / Framed Dental Diagrams (Geometric Symbols Only) -->
+                <!-- Frame 1 -->
+                <g transform="translate(200, 680) rotate(90)">
+                    <rect x="0" y="0" width="70" height="8" fill="#1e293b" stroke="#38bdf8" stroke-width="1"/>
+                </g>
+                <!-- Frame 2 -->
+                <g transform="translate(600, 138)">
+                    <rect x="0" y="0" width="60" height="8" fill="#1e293b" stroke="#38bdf8" stroke-width="1"/>
+                </g>
+            </g>
+
+            <!-- ARCHITECTURAL DIMENSION & SCHEMATIC SYMBOLS (NO WORDS/LETTERS) -->
+            <g id="dimension-lines" opacity="0.5">
+                <!-- Outer Overall Width Dimension Line -->
+                <g transform="translate(200, 80)">
+                    <line x1="0" y1="0" x2="1200" y2="0" stroke="#38bdf8" stroke-width="1.5"/>
+                    <line x1="0" y1="-10" x2="0" y2="10" stroke="#38bdf8" stroke-width="1.5"/>
+                    <line x1="1200" y1="-10" x2="1200" y2="10" stroke="#38bdf8" stroke-width="1.5"/>
+                    <!-- Dimension Tick Marks -->
+                    <path d="M -5,5 L 5,-5 M 1195,5 L 1205,-5" stroke="#38bdf8" stroke-width="2"/>
+                    <!-- Graphical Dimension Indicator Symbol (Replacing Numbers) -->
+                    <circle cx="600" cy="0" r="8" fill="#0b1326" stroke="#38bdf8" stroke-width="1.5"/>
+                    <path d="M 595,0 L 605,0 M 600,-5 L 600,5" stroke="#38bdf8" stroke-width="1"/>
+                </g>
+
+                <!-- Outer Overall Height Dimension Line -->
+                <g transform="translate(100, 150)">
+                    <line x1="0" y1="0" x2="0" y2="800" stroke="#38bdf8" stroke-width="1.5"/>
+                    <line x1="-10" y1="0" x2="10" y2="0" stroke="#38bdf8" stroke-width="1.5"/>
+                    <line x1="-10" y1="800" x2="10" y2="800" stroke="#38bdf8" stroke-width="1.5"/>
+                    <!-- Dimension Tick Marks -->
+                    <path d="M -5,-5 L 5,5 M -5,795 L 5,805" stroke="#38bdf8" stroke-width="2"/>
+                    <!-- Graphical Symbol -->
+                    <circle cx="0" cy="400" r="8" fill="#0b1326" stroke="#38bdf8" stroke-width="1.5"/>
+                    <path d="M -5,400 L 5,400 M 0,395 L 0,405" stroke="#38bdf8" stroke-width="1"/>
+                </g>
+
+                <!-- Compass North Arrow Indicator Icon (Bottom Right, Purely Graphical) -->
+                <g transform="translate(1330, 870)">
+                    <circle cx="0" cy="0" r="32" fill="rgba(15, 23, 42, 0.6)" stroke="#38bdf8" stroke-width="1.5"/>
+                    <!-- North Pointer Triangle -->
+                    <polygon points="0,-26 8,0 0,-4" fill="#38bdf8"/>
+                    <polygon points="0,-26 -8,0 0,-4" fill="#0284c7"/>
+                    <!-- South Pointer Triangle -->
+                    <polygon points="0,26 8,0 0,4" fill="#64748b"/>
+                    <polygon points="0,26 -8,0 0,4" fill="#475569"/>
+                    <circle cx="0" cy="0" r="3" fill="#38bdf8"/>
+                </g>
+            </g>
+        </svg>
+    </div>
+
+    <!-- JavaScript for Interactivity, Pan/Zoom, and Theme Toggling -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const container = document.getElementById('svg-container');
+            const svg = document.getElementById('blueprint-svg');
+            const themeBtn = document.getElementById('theme-btn');
+            const darkIcon = document.getElementById('theme-icon-dark');
+            const lightIcon = document.getElementById('theme-icon-light');
+            const appBody = document.getElementById('app-body');
+            const lightingBtn = document.getElementById('toggle-lighting');
+
+            // Zoom & Pan State Variables
+            let isPanning = false;
+            let startX = 0, startY = 0;
+            let viewBox = { x: 0, y: 0, w: 1600, h: 1100 };
+            const originalViewBox = { ...viewBox };
+
+            function updateViewBox() {
+                svg.setAttribute('viewBox', `${viewBox.x} ${viewBox.y} ${viewBox.w} ${viewBox.h}`);
+            }
+
+            // Mouse Pan Logic
+            container.addEventListener('mousedown', (e) => {
+                if (e.target.closest('.fixed')) return; // Ignore toolbar clicks
+                isPanning = true;
+                startX = e.clientX;
+                startY = e.clientY;
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (!isPanning) return;
+                const dx = (e.clientX - startX) * (viewBox.w / window.innerWidth);
+                const dy = (e.clientY - startY) * (viewBox.h / window.innerHeight);
+
+                viewBox.x -= dx;
+                viewBox.y -= dy;
+                startX = e.clientX;
+                startY = e.clientY;
+
+                updateViewBox();
+            });
+
+            window.addEventListener('mouseup', () => {
+                isPanning = false;
+            });
+
+            // Touch Support for Mobile
+            let touchStartX = 0, touchStartY = 0;
+            container.addEventListener('touchstart', (e) => {
+                if (e.touches.length === 1) {
+                    isPanning = true;
+                    touchStartX = e.touches[0].clientX;
+                    touchStartY = e.touches[0].clientY;
+                }
+            });
+
+            container.addEventListener('touchmove', (e) => {
+                if (!isPanning || e.touches.length !== 1) return;
+                const dx = (e.touches[0].clientX - touchStartX) * (viewBox.w / window.innerWidth);
+                const dy = (e.touches[0].clientY - touchStartY) * (viewBox.h / window.innerHeight);
+
+                viewBox.x -= dx;
+                viewBox.y -= dy;
+                touchStartX = e.touches[0].clientX;
+                touchStartY = e.touches[0].clientY;
+
+                updateViewBox();
+            });
+
+            container.addEventListener('touchend', () => {
+                isPanning = false;
+            });
+
+            // Zoom Wheel Logic
+            container.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                const zoomFactor = e.deltaY < 0 ? 0.9 : 1.1;
+
+                // Restrict zoom limits
+                if (viewBox.w * zoomFactor < 400 || viewBox.w * zoomFactor > 3200) return;
+
+                const mouseX = e.clientX;
+                const mouseY = e.clientY;
+
+                // Mouse position relative to SVG coordinates
+                const svgPointX = viewBox.x + (mouseX / window.innerWidth) * viewBox.w;
+                const svgPointY = viewBox.y + (mouseY / window.innerHeight) * viewBox.h;
+
+                viewBox.w *= zoomFactor;
+                viewBox.h *= zoomFactor;
+
+                viewBox.x = svgPointX - (mouseX / window.innerWidth) * viewBox.w;
+                viewBox.y = svgPointY - (mouseY / window.innerHeight) * viewBox.h;
+
+                updateViewBox();
+            }, { passive: false });
+
+            // Button Zoom Controls
+            document.getElementById('zoom-in').addEventListener('click', () => {
+                viewBox.w *= 0.8;
+                viewBox.h *= 0.8;
+                viewBox.x += viewBox.w * 0.1;
+                viewBox.y += viewBox.h * 0.1;
+                updateViewBox();
+            });
+
+            document.getElementById('zoom-out').addEventListener('click', () => {
+                viewBox.w *= 1.25;
+                viewBox.h *= 1.25;
+                viewBox.x -= viewBox.w * 0.1;
+                viewBox.y -= viewBox.h * 0.1;
+                updateViewBox();
+            });
+
+            document.getElementById('zoom-reset').addEventListener('click', () => {
+                viewBox = { ...originalViewBox };
+                updateViewBox();
+            });
+
+            // Theme Switcher (Blueprint Dark <-> Architectural Light Paper)
+            let isPaperTheme = false;
+            themeBtn.addEventListener('click', () => {
+                isPaperTheme = !isPaperTheme;
+                if (isPaperTheme) {
+                    appBody.classList.remove('blueprint-bg');
+                    appBody.classList.add('paper-bg', 'paper-theme');
+                    darkIcon.classList.add('hidden');
+                    lightIcon.classList.remove('hidden');
+
+                    // Adjust wall hatch fill for light mode
+                    document.querySelectorAll('.wall-hatch-target').forEach(el => {
+                        el.setAttribute('fill', 'url(#wall-hatch-paper)');
+                    });
+                    document.querySelectorAll('.window-cutout-bg, .door-cutout-bg').forEach(el => {
+                        el.setAttribute('fill', '#f8fafc');
+                    });
+                    document.querySelectorAll('.door-cutout-line').forEach(el => {
+                        el.setAttribute('stroke', '#f8fafc');
+                    });
+                } else {
+                    appBody.classList.remove('paper-bg', 'paper-theme');
+                    appBody.classList.add('blueprint-bg');
+                    lightIcon.classList.add('hidden');
+                    darkIcon.classList.remove('hidden');
+
+                    // Restore dark mode fills
+                    document.querySelectorAll('.wall-hatch-target').forEach(el => {
+                        el.setAttribute('fill', 'url(#wall-hatch)');
+                    });
+                    document.querySelectorAll('.window-cutout-bg, .door-cutout-bg').forEach(el => {
+                        el.setAttribute('fill', '#0b1326');
+                    });
+                    document.querySelectorAll('.door-cutout-line').forEach(el => {
+                        el.setAttribute('stroke', '#0b1326');
+                    });
+                }
+            });
+
+            // Toggle Lamp Light Beams
+            let lightingActive = true;
+            lightingBtn.addEventListener('click', () => {
+                lightingActive = !lightingActive;
+                const beams = document.querySelectorAll('.lamp-light-beam');
+                beams.forEach(beam => {
+                    beam.style.display = lightingActive ? 'block' : 'none';
+                });
+                lightingBtn.classList.toggle('btn-active', lightingActive);
+            });
+        });
+    </script>
+</body>
+</html>

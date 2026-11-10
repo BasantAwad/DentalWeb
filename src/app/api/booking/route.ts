@@ -3,8 +3,13 @@ import { createClient } from '@/lib/supabase/client'
 import { v4 as uuidv4 } from 'uuid'
 
 // ─── POST /api/booking ───
-// Create a booking hold + booking record atomically
-// Validates availability, creates hold with expiration, returns checkout session info
+// Create a booking hold + booking record atomically.
+// Validates availability, computes the price server-side, creates the hold
+// with an expiry, and returns the checkout session info.
+//
+// The client may send an `idempotencyKey`. If a booking already exists for
+// that key it is returned unchanged, so a double-click or a network retry
+// cannot create two reservations.
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
@@ -17,14 +22,59 @@ export async function POST(request: NextRequest) {
       endDt,
       source = 'web',
       notes = null,
-      depositDue,
-      balanceDue,
       holdMinutes = 15,
+      idempotencyKey: providedIdempotencyKey = null,
     } = body
 
     // Validate required fields
     if (!clinicId || !userId || !resourceId || !startDt || !endDt) {
       return NextResponse.json({ error: 'Missing required fields: clinicId, userId, resourceId, startDt, endDt' }, { status: 400 })
+    }
+
+    // Staff-entered bookings are not customer requests; they are marked as
+    // such so they can bypass the customer-facing availability rules.
+    const staffEntry = source === 'phone' || source === 'walk_in' || source === 'admin'
+    let idempotencyKey = providedIdempotencyKey
+    if (!staffEntry && !idempotencyKey) {
+      // A customer booking without an idempotency key is still allowed, but
+      // the key is derived deterministically so a retry is de-duplicated.
+      idempotencyKey = `${clinicId}:${userId}:${resourceId}:${startDt}:${endDt}`
+    }
+
+    // Return the existing booking if this request was already processed.
+    if (idempotencyKey) {
+      const { data: existing } = await createClient()
+        .from('bookings')
+        .select('id, reference, clinic_id, user_id, service_id, resource_id, start_dt, end_dt, status, deposit_due_egp, balance_due_egp, deposit_paid_egp')
+        .eq('clinic_id', clinicId)
+        .eq('user_id', userId)
+        .eq('resource_id', resourceId)
+        .eq('start_dt', startDt)
+        .eq('end_dt', endDt)
+        .in('status', ['held', 'pending', 'confirmed'])
+        .limit(1)
+
+      if (existing && existing.length > 0) {
+        const booking = existing[0]
+        return NextResponse.json({
+          success: true,
+          idempotent: true,
+          booking: {
+            id: booking.id,
+            reference: booking.reference,
+            clinicId: booking.clinic_id,
+            userId: booking.user_id,
+            serviceId: booking.service_id,
+            resourceId: booking.resource_id,
+            startDt: booking.start_dt,
+            endDt: booking.end_dt,
+            status: booking.status,
+            depositDue: booking.deposit_due_egp,
+            balanceDue: booking.balance_due_egp,
+            depositPaid: booking.deposit_paid_egp,
+          },
+        })
+      }
     }
 
     // Parse dates
@@ -35,6 +85,13 @@ export async function POST(request: NextRequest) {
     }
     if (start >= end) {
       return NextResponse.json({ error: 'startDt must be before endDt' }, { status: 400 })
+    }
+
+    // Duration is derived from the requested window. Pricing is computed
+    // server-side from the service rate — the client never supplies an amount.
+    const durationHours = (end.getTime() - start.getTime()) / 3_600_000
+    if (!Number.isFinite(durationHours) || durationHours <= 0) {
+      return NextResponse.json({ error: 'Invalid booking duration' }, { status: 400 })
     }
 
     // Get clinic for timezone and deposit rule
@@ -50,16 +107,58 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Clinic not found' }, { status: 404 })
     }
 
-    // Validate start/end are within operating hours
-    // (Simplified: check if any operating hours exist that cover this time range)
+    // ── Server-authoritative pricing ────────────────────────────────
+    // The rate comes from the configured service, never from the request.
+    // Money is handled in integer minor units (piastres).
+    const { data: service } = serviceId
+      ? await supabase
+          .from('services')
+          .select('id, name, price_egp, deposit_pct, duration_minutes, is_active, is_bookable')
+          .eq('id', serviceId)
+          .single()
+      : { data: null }
+
+    if (serviceId && !service) {
+      return NextResponse.json({ error: 'Service not found' }, { status: 404 })
+    }
+    if (service && (!service.is_active || !service.is_bookable)) {
+      return NextResponse.json({ error: 'Service is not available for booking' }, { status: 400 })
+    }
+
+    const hourlyRateMinor = (service?.price_egp ?? 0) * 100
+    if (hourlyRateMinor <= 0) {
+      return NextResponse.json(
+        { error: 'No bookable rate configured for this service' },
+        { status: 400 },
+      )
+    }
+
+    const totalMinor = hourlyRateMinor * durationHours
+    // Deposit percentage comes from the service override, else the clinic default.
+    const depositPct = service?.deposit_pct ?? clinic.deposit_pct ?? 50
+    const depositMinor = Math.floor((totalMinor * depositPct) / 100)
+    const balanceMinor = totalMinor - depositMinor
+
+    // Validate start/end are within operating hours.
+    // Facility-wide hours apply to every resource; resource-specific hours
+    // override them. Fetched separately because a single `.or()` filter cannot
+    // express "either facility-wide or this resource".
     const weekday = start.getDay()
-    const { data: hours } = await supabase
+    const { data: facilityHours } = await supabase
       .from('operating_hours')
       .select('start_time, end_time')
       .eq('clinic_id', clinicId)
       .eq('weekday', weekday)
-      .or('resource_id.is_null')
+      .is('resource_id', null)
+
+    const { data: resourceHours } = await supabase
+      .from('operating_hours')
+      .select('start_time, end_time')
+      .eq('clinic_id', clinicId)
+      .eq('weekday', weekday)
       .eq('resource_id', resourceId)
+
+    const hours = resourceHours?.length ? resourceHours : facilityHours
 
     // Check if the slot conflicts with existing bookings or holds
     const { data: conflictingBookings } = await supabase
@@ -92,30 +191,20 @@ export async function POST(request: NextRequest) {
       }, { status: 409 })
     }
 
-    // Verify the slot is within operating hours
-    const slotHour = start.getHours()
-    const slotMinutes = start.getMinutes()
-    const slotTimeStr = `${String(slotHour).padStart(2, '0')}:${String(slotMinutes).padStart(2, '0')}`
-    const endHour = end.getHours()
-    const endMinutes = end.getMinutes()
-    const endTimeStr = `${String(endHour).padStart(2, '0')}:${String(endMinutes).padStart(2, '0')}`
+    // Verify the whole requested range sits inside one operating-hours window.
+    // Checking only the start time would allow a booking to run past closing.
+    const slotTimeStr = `${String(start.getHours()).padStart(2, '0')}:${String(start.getMinutes()).padStart(2, '0')}`
+    const endTimeStr = `${String(end.getHours()).padStart(2, '0')}:${String(end.getMinutes()).padStart(2, '0')}`
 
-    let inOperatingHours = false
-    if (hours && hours.length > 0) {
-      for (const h of hours) {
-        if (h.start_time <= slotTimeStr && h.end_time > slotTimeStr) {
-          inOperatingHours = true
-          break
-        }
-      }
-    }
+    const inOperatingHours = (hours ?? []).some(
+      (h) => h.start_time <= slotTimeStr && h.end_time >= endTimeStr,
+    )
 
-    // If no operating hours found but this is an admin/phone booking, allow
-    if (!inOperatingHours && source !== 'phone' && source !== 'walk_in' && source !== 'admin') {
-      // Check if there are ANY operating hours for this weekday
+    // Staff-entered bookings (phone, walk-in, admin) bypass the hours check.
+    if (!inOperatingHours && !staffEntry) {
       if (!hours || hours.length === 0) {
         return NextResponse.json({
-          error: 'No operating hours configured for this day. Please contact the clinic.',
+          error: 'No operating hours configured for this day. Please contact the facility.',
         }, { status: 400 })
       }
       return NextResponse.json({
@@ -139,8 +228,8 @@ export async function POST(request: NextRequest) {
         end_dt: end.toISOString(),
         status: 'held',
         notes,
-        deposit_due_egp: depositDue || 0,
-        balance_due_egp: balanceDue || 0,
+        deposit_due_egp: depositMinor / 100,
+        balance_due_egp: balanceMinor / 100,
         deposit_paid_egp: 0,
         source,
         created_by: userId,
@@ -152,7 +241,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to create booking: ' + bookingError?.message }, { status: 500 })
     }
 
-    const expirationDt = new Date(start.getTime() + holdMinutes * 60 * 1000)
+    // The hold expires relative to NOW, not relative to the booking start —
+    // otherwise a booking next month would be held indefinitely.
+    const expirationDt = new Date(Date.now() + holdMinutes * 60 * 1000)
 
     // Create hold
     const { data: hold, error: holdError } = await supabase
@@ -174,20 +265,9 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to create hold: ' + holdError?.message }, { status: 500 })
     }
 
-    // Get service info for checkout summary
-    let serviceName = 'Booking'
-    let servicePrice = depositDue || 0
-    if (serviceId) {
-      const { data: service } = await supabase
-        .from('services')
-        .select('name, price_egp')
-        .eq('id', serviceId)
-        .single()
-      if (service) {
-        serviceName = service.name
-        servicePrice = service.price_egp
-      }
-    }
+    // Checkout summary — amounts come from the server-side calculation.
+    const serviceName = service?.name ?? 'Booking'
+    const servicePrice = service?.price_egp ?? 0
 
     return NextResponse.json({
       success: true,
@@ -201,6 +281,8 @@ export async function POST(request: NextRequest) {
         startDt: booking.start_dt,
         endDt: booking.end_dt,
         status: booking.status,
+        durationHours,
+        hourlyRateEgp: servicePrice,
         depositDue: booking.deposit_due_egp,
         balanceDue: booking.balance_due_egp,
         depositPaid: booking.deposit_paid_egp,
@@ -227,33 +309,4 @@ export async function POST(request: NextRequest) {
     console.error('Booking API error:', err)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
-}
-
-// ─── GET /api/booking/[id] ───
-// Get booking details (user's own booking or clinic staff)
-export async function GET(request: NextRequest) {
-  const id = request.nextUrl.pathname.split('/').pop()
-  if (!id) {
-    return NextResponse.json({ error: 'Booking ID required' }, { status: 400 })
-  }
-
-  const supabase = createClient()
-
-  const { data: booking, error } = await supabase
-    .from('bookings')
-    .select(`
-      *,
-      clinics (*),
-      services (*),
-      resources (*),
-      payments (*)
-    `)
-    .eq('id', id)
-    .single()
-
-  if (error || !booking) {
-    return NextResponse.json({ error: 'Booking not found' }, { status: 404 })
-  }
-
-  return NextResponse.json({ booking })
 }

@@ -1,129 +1,152 @@
+import type { Metadata } from 'next'
 import Link from 'next/link'
 import { SERVICES } from '@/lib/services-data'
+import { RENTAL_SERVICE_LIST } from '@/lib/pricing'
+import Section, { Eyebrow, Rule } from '@/components/ui/Section'
+import { ButtonLink } from '@/components/ui/Button'
 
-export const metadata = {
-  title: 'All Services — Dental Platform',
+export const metadata: Metadata = {
+  title: 'Services',
   description:
-    'Browse all dental services: chair rental, dummy head practice, radiography, sterilization, tooth assistance, and general dentistry. Book with a 50% deposit via Paymob.',
+    'Dental chair and phantom head rental by the hour, plus clinical services from published facilities. Book online with a 50% deposit.',
 }
 
 export default function ServicesIndexPage() {
+  const clinical = SERVICES.filter(
+    (s) => s.category !== 'chair_rental' && s.category !== 'dummy_head',
+  )
+
   return (
-    <div className="min-h-screen bg-background pt-8 pb-20">
-      {/* Header */}
-      <div className="bg-gradient-to-b from-navy to-charcoal text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 md:py-16">
-          <div className="max-w-2xl">
-            <span className="inline-block px-2.5 py-1 bg-aqua/20 text-aqua text-xs font-semibold rounded-full mb-3">
-              Platform Services
-            </span>
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight">
-              All dental services
-            </h1>
-            <p className="text-white/70 mt-3 text-base leading-relaxed">
-              Every service is bookable online with a 50% deposit via Paymob. Live availability,
-              transparent pricing, and instant confirmation — all in Egyptian pounds.
-            </p>
+    <>
+      {/* ── Header ─────────────────────────────────────────────────── */}
+      <Section theme="porcelain" className="relative overflow-hidden pt-32 md:pt-44">
+        <div className="page">
+          <div className="grid-12 items-end gap-y-10">
+            <div className="col-span-12 lg:col-span-7">
+              <Eyebrow>Services</Eyebrow>
+              <h1 className="mt-6 font-display text-[clamp(2.5rem,6vw,4.5rem)] font-semibold leading-[1.0] tracking-[-0.035em]">
+                Equipment you can
+                <br />
+                book by the hour.
+              </h1>
+            </div>
+            <div className="col-span-12 lg:col-span-4 lg:col-start-9">
+              <p className="text-[1.0625rem] leading-relaxed text-graphite-700">
+                Two confirmed rental services with platform-wide rates, plus the
+                clinical services individual facilities publish.
+              </p>
+            </div>
           </div>
         </div>
-      </div>
+      </Section>
 
-      {/* Services grid */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 relative z-10">
-        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {SERVICES.map((service, i) => (
-            <Link
-              key={service.id}
-              href={`/services/${service.slug}`}
-              className="group bg-white rounded-2xl border border-border overflow-hidden hover:border-aqua/40 hover:shadow-xl transition-all duration-300 hover:-translate-y-1"
-              style={{ animationDelay: `${i * 0.07}s` }}
-            >
-              {/* Image */}
-              <div className="relative h-44 overflow-hidden">
-                <img
-                  src={service.image}
-                  alt={service.name}
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
-                  loading="lazy"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-navy/80 via-navy/20 to-transparent" />
-                <div
-                  className="absolute top-3 left-3 px-2 py-0.5 rounded-full text-[10px] font-bold text-white uppercase tracking-wider"
-                  style={{ background: service.accentColor }}
-                >
-                  {service.category.replace('_', ' ')}
-                </div>
-                <span className="absolute top-3 right-3 bg-white/90 text-navy text-[10px] font-bold px-2 py-0.5 rounded-full">
-                  {service.duration} min
-                </span>
-              </div>
+      {/* ── The two rental services — the primary catalogue ───────── */}
+      <Section theme="chalk" className="relative overflow-hidden">
+        <div className="page py-16 md:py-20">
+          <div className="grid-12 gap-y-12">
+            <div className="col-span-12 lg:col-span-3">
+              <Eyebrow>Rental</Eyebrow>
+              <h2 className="mt-5 font-display text-[clamp(1.5rem,2.6vw,2rem)] font-semibold tracking-[-0.025em]">
+                Book by the hour
+              </h2>
+              <p className="mt-4 text-[0.9375rem] leading-relaxed text-graphite-700">
+                Whole-hour sessions. A 50% deposit confirms the reservation.
+              </p>
+            </div>
 
-              {/* Body */}
-              <div className="p-5">
-                <h2 className="text-sm font-bold text-navy group-hover:text-aqua transition-colors mb-1">
-                  {service.name}
+            <ul className="col-span-12 lg:col-span-8 lg:col-start-5">
+              {RENTAL_SERVICE_LIST.map((service, index) => (
+                <li key={service.key}>
+                  <Link
+                    href={service.href}
+                    className="group grid gap-y-4 border-b border-stone-300 py-8 transition-colors duration-300 hover:bg-porcelain-100/70 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-center sm:gap-x-10"
+                  >
+                    <div className="min-w-0">
+                      <p className="font-display text-[clamp(1.5rem,3vw,2.25rem)] font-semibold leading-tight tracking-[-0.03em] text-graphite-900 transition-colors group-hover:text-teal-700">
+                        {service.name}
+                      </p>
+                      <p className="mt-3 max-w-xl text-[0.9375rem] leading-relaxed text-graphite-700">
+                        {service.description}
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-6 sm:flex-col sm:items-end sm:gap-1">
+                      <span className="tnum font-display text-[1.75rem] font-semibold text-teal-700">
+                        {service.hourlyRateEgp} EGP
+                      </span>
+                      <span className="text-[0.8125rem] text-slate-600">per hour</span>
+                      <span className="mt-2 inline-flex items-center gap-1.5 text-[0.9375rem] font-semibold text-graphite-900">
+                        Explore
+                        <svg
+                          width="14"
+                          height="14"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          aria-hidden="true"
+                          className="transition-transform duration-200 group-hover:translate-x-1"
+                        >
+                          <path d="M5 12h14M12 5l7 7-7 7" />
+                        </svg>
+                      </span>
+                    </div>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      </Section>
+
+      {/* ── Clinical services from facilities ───────────────────────── */}
+      {clinical.length > 0 ? (
+        <Section theme="porcelain" className="relative overflow-hidden">
+          <div className="page py-16 md:py-20">
+            <div className="grid-12 gap-y-12">
+              <div className="col-span-12 lg:col-span-3">
+                <Eyebrow>From facilities</Eyebrow>
+                <h2 className="mt-5 font-display text-[clamp(1.5rem,2.6vw,2rem)] font-semibold tracking-[-0.025em]">
+                  Clinical services
                 </h2>
-                <p className="text-xs text-muted leading-relaxed mb-4 line-clamp-2">
-                  {service.shortDescription}
+                <p className="mt-4 text-[0.9375rem] leading-relaxed text-graphite-700">
+                  Published by individual facilities, with their own rates and
+                  availability.
                 </p>
-
-                {/* Highlights */}
-                <div className="flex flex-wrap gap-1.5 mb-4">
-                  {service.highlights.slice(0, 2).map((h) => (
-                    <span key={h} className="px-1.5 py-0.5 bg-cream text-[10px] text-muted rounded border border-border">
-                      {h}
-                    </span>
-                  ))}
-                </div>
-
-                <div className="flex items-center justify-between pt-3 border-t border-border">
-                  <div>
-                    <p className="text-base font-bold text-navy">{service.price} <span className="text-xs font-normal text-muted">EGP</span></p>
-                    <p className="text-[10px] text-muted">Deposit: {service.deposit} EGP</p>
-                  </div>
-                  <span className="inline-flex items-center gap-1 text-xs font-semibold text-aqua group-hover:text-aqua-dark group-hover:gap-2 transition-all">
-                    View details
-                    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M5 12h14M12 5l7 7-7 7"/>
-                    </svg>
-                  </span>
+                <div className="mt-6">
+                  <ButtonLink href="/facilities" variant="secondary">
+                    Browse facilities
+                  </ButtonLink>
                 </div>
               </div>
-            </Link>
-          ))}
-        </div>
-      </div>
 
-      {/* Payment banner */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 mt-14">
-        <div className="bg-navy rounded-2xl p-6 sm:p-8 text-white flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div>
-            <h3 className="text-lg font-bold">Pay securely with Paymob</h3>
-            <p className="text-white/60 text-sm mt-1">
-              All deposits are processed via Paymob — Egypt&apos;s leading payment gateway.
-            </p>
+              <ul className="col-span-12 grid gap-x-10 sm:grid-cols-2 lg:col-span-8 lg:col-start-5">
+                {clinical.map((service) => (
+                  <li key={service.id} className="border-t border-stone-300 py-5">
+                    <Link
+                      href={`/services/${service.slug}`}
+                      className="group flex items-baseline justify-between gap-4"
+                    >
+                      <span>
+                        <span className="block font-display text-[1.0625rem] font-semibold text-graphite-900 transition-colors group-hover:text-teal-700">
+                          {service.name}
+                        </span>
+                        <span className="mt-1 block text-[0.8125rem] leading-relaxed text-slate-600">
+                          {service.tagline}
+                        </span>
+                      </span>
+                      <span className="tnum shrink-0 text-[0.9375rem] font-semibold text-teal-700">
+                        {service.price} EGP
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
-          <div className="flex items-center gap-4 shrink-0">
-            {[
-              { icon: 'M3 11a9 9 0 1 1 18 0', label: 'Encrypted' },
-              { icon: 'M20 6L9 17l-5-5', label: 'Instant confirm' },
-            ].map((b) => (
-              <div key={b.label} className="flex items-center gap-1.5 text-xs text-white/60">
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d={b.icon} />
-                </svg>
-                {b.label}
-              </div>
-            ))}
-            <Link
-              href="/chair-rental"
-              className="px-4 py-2 bg-aqua text-white text-sm font-semibold rounded-xl hover:bg-aqua-dark transition-colors"
-            >
-              Book now
-            </Link>
-          </div>
-        </div>
-      </div>
-    </div>
+        </Section>
+      ) : null}
+    </>
   )
 }

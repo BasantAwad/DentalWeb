@@ -1,9 +1,17 @@
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { SERVICES } from '@/lib/services-data'
+import Section, { Eyebrow, Rule } from '@/components/ui/Section'
+import { ButtonLink } from '@/components/ui/Button'
+import Breadcrumb from '@/components/ui/Breadcrumb'
 
 export async function generateStaticParams() {
-  return SERVICES.map((s) => ({ slug: s.slug }))
+  // The two rentable services have their own dedicated product pages at
+  // /services/dental-chair and /services/phantom-head, so they are not
+  // generated from this catalogue.
+  return SERVICES.filter(
+    (s) => s.category !== 'chair_rental' && s.category !== 'dummy_head',
+  ).map((s) => ({ slug: s.slug }))
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }) {
@@ -11,7 +19,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const service = SERVICES.find((s) => s.slug === slug)
   if (!service) return {}
   return {
-    title: `${service.name} — Dental Platform`,
+    title: service.name,
     description: service.shortDescription,
   }
 }
@@ -23,201 +31,230 @@ export default async function ServiceDetailPage({ params }: { params: Promise<{ 
 
   const otherServices = SERVICES.filter((s) => s.slug !== slug).slice(0, 3)
 
-  // Parse simple markdown bold (**text**) for the fullDescription
-  const renderDescription = (text: string) =>
-    text.split('\n').map((line, i) => {
-      if (line.startsWith('**') && line.endsWith('**')) {
-        return (
-          <p key={i} className="font-semibold text-navy mt-4 mb-1">
-            {line.replace(/\*\*/g, '')}
-          </p>
-        )
-      }
-      if (line.startsWith('- ')) {
-        return (
-          <li key={i} className="ml-4 text-charcoal/75 text-sm leading-relaxed list-disc">
-            {line.slice(2)}
-          </li>
-        )
-      }
-      if (line.startsWith('#')) {
-        return null // skip internal headings
-      }
-      if (line.trim() === '') return <br key={i} />
-      return (
-        <p key={i} className="text-charcoal/75 text-sm leading-relaxed">
-          {line}
-        </p>
-      )
-    })
-
   return (
-    <div className="min-h-screen bg-background pb-20">
-      {/* ── Cover ── */}
-      <div className="relative h-64 md:h-80 overflow-hidden">
-        <img
-          src={service.coverImage}
-          alt={service.name}
-          className="w-full h-full object-cover"
+    <>
+      {/* ── Identity ───────────────────────────────────────────────── */}
+      <Section theme="dark" className="relative overflow-hidden pt-32 md:pt-40">
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-0"
+          style={{
+            background:
+              'radial-gradient(100% 80% at 26% 8%, rgba(47,119,114,0.18) 0%, rgba(32,37,34,0) 60%)',
+          }}
         />
-        <div className="absolute inset-0 bg-gradient-to-t from-navy/80 via-navy/30 to-transparent" />
 
-        {/* Breadcrumb */}
-        <div className="absolute top-4 left-4 flex items-center gap-2 text-white/70 text-xs">
-          <Link href="/" className="hover:text-white transition-colors">Home</Link>
-          <span>/</span>
-          <Link href="/services" className="hover:text-white transition-colors">Services</Link>
-          <span>/</span>
-          <span className="text-white">{service.name}</span>
-        </div>
+        <div className="page relative">
+          <Breadcrumb
+            tone="dark"
+            items={[
+              { href: '/', label: 'Home' },
+              { href: '/services', label: 'Services' },
+              { href: `/services/${service.slug}`, label: service.name },
+            ]}
+          />
 
-        {/* Back btn */}
-        <Link
-          href="/services"
-          className="absolute top-4 right-4 flex items-center gap-1.5 px-3 py-1.5 bg-white/20 backdrop-blur-sm rounded-full text-white text-xs font-medium hover:bg-white/30 transition-colors"
-        >
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M19 12H5M12 5l-7 7 7 7"/>
-          </svg>
-          All services
-        </Link>
-
-        {/* Title overlay */}
-        <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8">
-          <div className="max-w-4xl mx-auto">
-            <span
-              className="inline-block px-2.5 py-1 text-[10px] font-bold uppercase tracking-widest text-white rounded-full mb-3"
-              style={{ background: service.accentColor }}
-            >
-              {service.tagline}
-            </span>
-            <h1 className="text-3xl md:text-4xl font-bold text-white tracking-tight">
-              {service.name}
-            </h1>
-          </div>
-        </div>
-      </div>
-
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mt-8">
-        <div className="grid lg:grid-cols-3 gap-8">
-          {/* ── Main content ── */}
-          <div className="lg:col-span-2 space-y-8">
-            {/* Quick highlights */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {service.highlights.map((h) => (
-                <div
-                  key={h}
-                  className="flex items-center gap-2 p-3 rounded-xl border border-border bg-white text-xs font-medium text-navy"
-                >
-                  <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: service.accentColor }} />
-                  {h}
-                </div>
-              ))}
+          <div className="mt-8 grid-12 items-end gap-y-10">
+            <div className="col-span-12 lg:col-span-7">
+              <p className="text-[0.75rem] font-semibold uppercase tracking-[0.18em] text-sage-200/80">
+                {service.tagline}
+              </p>
+              <h1 className="mt-5 font-display text-[clamp(2.25rem,5vw,4rem)] font-semibold leading-[1.02] tracking-[-0.035em]">
+                {service.name}
+              </h1>
+              <p className="mt-6 max-w-xl text-[1.0625rem] leading-relaxed text-porcelain-100/70">
+                {service.shortDescription}
+              </p>
             </div>
 
-            {/* About */}
-            <div className="bg-white rounded-2xl border border-border p-6">
-              <h2 className="text-lg font-semibold text-navy mb-4">About this service</h2>
-              <div className="space-y-1">
-                {renderDescription(service.fullDescription)}
+            <div className="col-span-12 lg:col-span-4 lg:col-start-9">
+              <div className="border-l border-white/12 pl-6">
+                <p className="text-[0.6875rem] uppercase tracking-[0.14em] text-porcelain-100/45">
+                  From
+                </p>
+                <p className="tnum mt-2 font-display text-[2.5rem] font-semibold leading-none tracking-[-0.03em]">
+                  {service.price} EGP
+                </p>
+                <p className="mt-1.5 text-[0.875rem] text-porcelain-100/55">
+                  per session · {service.duration} min
+                </p>
               </div>
             </div>
+          </div>
+        </div>
+      </Section>
 
-            {/* Related services */}
-            <div>
-              <h2 className="text-base font-semibold text-navy mb-4">Other services you might need</h2>
-              <div className="grid sm:grid-cols-3 gap-4">
-                {otherServices.map((os) => (
+      {/* ── Media ──────────────────────────────────────────────────── */}
+      <Section theme="graphite" className="relative overflow-hidden !py-0">
+        <div className="relative h-[34vh] min-h-[240px] w-full overflow-hidden md:h-[48vh]">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={service.coverImage}
+            alt={service.name}
+            className="h-full w-full object-cover"
+          />
+          <div
+            aria-hidden="true"
+            className="absolute inset-0"
+            style={{
+              background:
+                'linear-gradient(180deg, rgba(32,37,34,0.4) 0%, rgba(32,37,34,0) 32%, rgba(32,37,34,0.9) 100%)',
+            }}
+          />
+        </div>
+      </Section>
+
+      {/* ── Detail ─────────────────────────────────────────────────── */}
+      <Section theme="porcelain" className="relative overflow-hidden">
+        <div className="page py-16 md:py-24">
+          <div className="grid-12 gap-y-14">
+            <div className="col-span-12 lg:col-span-7">
+              <Eyebrow>About this service</Eyebrow>
+              <div className="mt-6 space-y-4">
+                {service.fullDescription.split('\n').map((line, index) => {
+                  if (line.startsWith('**') && line.endsWith('**')) {
+                    return (
+                      <h2
+                        key={index}
+                        className="pt-4 font-display text-[1.375rem] font-semibold tracking-[-0.02em] text-graphite-900"
+                      >
+                        {line.replace(/\*\*/g, '')}
+                      </h2>
+                    )
+                  }
+                  if (line.startsWith('- ')) {
+                    return (
+                      <li
+                        key={index}
+                        className="flex gap-3 text-[0.9375rem] leading-relaxed text-graphite-700"
+                      >
+                        <span
+                          aria-hidden="true"
+                          className="mt-2.5 h-1 w-1 shrink-0 rounded-full bg-teal-600"
+                        />
+                        {line.slice(2)}
+                      </li>
+                    )
+                  }
+                  if (line.startsWith('#')) return null
+                  if (!line.trim()) return null
+                  return (
+                    <p key={index} className="text-[1.0625rem] leading-relaxed text-graphite-700">
+                      {line}
+                    </p>
+                  )
+                })}
+              </div>
+
+              {service.highlights.length > 0 ? (
+                <ul className="mt-10 flex flex-wrap gap-x-8 gap-y-3">
+                  {service.highlights.map((highlight) => (
+                    <li
+                      key={highlight}
+                      className="flex items-center gap-2 text-[0.9375rem] text-graphite-700"
+                    >
+                      <svg
+                        width="14"
+                        height="14"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2.2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        aria-hidden="true"
+                        className="shrink-0 text-teal-600"
+                      >
+                        <path d="M20 6 9 17l-5-5" />
+                      </svg>
+                      {highlight}
+                    </li>
+                  ))}
+                </ul>
+              ) : null}
+            </div>
+
+            {/* Booking panel */}
+            <div className="col-span-12 lg:col-span-4 lg:col-start-9">
+              <div className="lg:sticky lg:top-28">
+                <div className="rounded-[18px] border border-stone-300 bg-chalk p-6">
+                  <p className="text-[0.6875rem] uppercase tracking-[0.14em] text-slate-600">
+                    Booking
+                  </p>
+                  <p className="tnum mt-3 font-display text-[2rem] font-semibold leading-none tracking-[-0.03em] text-graphite-900">
+                    {service.price} EGP
+                    <span className="ml-1.5 text-[0.9375rem] font-normal text-slate-600">
+                      /session
+                    </span>
+                  </p>
+
+                  <div className="mt-5">
+                    <Rule />
+                  </div>
+
+                  <dl className="mt-5 space-y-2.5 text-[0.875rem]">
+                    <div className="flex justify-between gap-4">
+                      <dt className="text-slate-600">Duration</dt>
+                      <dd className="tnum font-medium text-graphite-900">
+                        {service.duration} minutes
+                      </dd>
+                    </div>
+                    <div className="flex justify-between gap-4">
+                      <dt className="text-slate-600">Deposit</dt>
+                      <dd className="tnum font-semibold text-teal-700">
+                        {service.deposit} EGP (50%)
+                      </dd>
+                    </div>
+                    <div className="flex justify-between gap-4">
+                      <dt className="text-slate-600">Balance</dt>
+                      <dd className="tnum font-medium text-graphite-900">
+                        {service.price - service.deposit} EGP
+                      </dd>
+                    </div>
+                  </dl>
+
+                  <div className="mt-6">
+                    <ButtonLink href="/facilities" variant="primary" size="lg" withArrow className="w-full">
+                      Check availability
+                    </ButtonLink>
+                  </div>
+
+                  <p className="mt-4 text-[0.75rem] leading-relaxed text-slate-600">
+                    A reservation is confirmed only after the deposit payment
+                    has been verified by the platform.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Section>
+
+      {/* ── Related ────────────────────────────────────────────────── */}
+      {otherServices.length > 0 ? (
+        <Section theme="chalk" className="relative overflow-hidden">
+          <div className="page py-16 md:py-20">
+            <Eyebrow>Also on DentalWeb</Eyebrow>
+            <ul className="mt-8 grid gap-x-10 sm:grid-cols-3">
+              {otherServices.map((other) => (
+                <li key={other.id} className="border-t border-stone-300 py-5">
                   <Link
-                    key={os.id}
-                    href={`/services/${os.slug}`}
-                    className="group bg-white rounded-xl border border-border overflow-hidden hover:border-aqua/40 hover:shadow-md transition-all"
+                    href={`/services/${other.slug}`}
+                    className="group flex items-baseline justify-between gap-4"
                   >
-                    <div className="h-28 overflow-hidden relative">
-                      <img src={os.image} alt={os.name} className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-navy/60 to-transparent" />
-                    </div>
-                    <div className="p-3">
-                      <p className="text-xs font-semibold text-navy group-hover:text-aqua transition-colors">{os.name}</p>
-                      <p className="text-[10px] text-muted mt-0.5">{os.price} EGP · {os.duration} min</p>
-                    </div>
+                    <span className="font-display text-[1rem] font-semibold text-graphite-900 transition-colors group-hover:text-teal-700">
+                      {other.name}
+                    </span>
+                    <span className="tnum shrink-0 text-[0.875rem] font-medium text-teal-700">
+                      {other.price} EGP
+                    </span>
                   </Link>
-                ))}
-              </div>
-            </div>
+                </li>
+              ))}
+            </ul>
           </div>
-
-          {/* ── Sidebar ── */}
-          <div className="space-y-4">
-            {/* Booking card */}
-            <div className="sticky top-24 space-y-4">
-              <div className="bg-white rounded-2xl border border-border p-5 shadow-sm">
-                <div className="flex items-start justify-between mb-4">
-                  <div>
-                    <p className="text-2xl font-bold text-navy">{service.price} <span className="text-sm font-normal text-muted">EGP</span></p>
-                    <p className="text-xs text-muted mt-0.5">per session · {service.duration} min</p>
-                  </div>
-                  <div
-                    className="px-2 py-1 text-[10px] font-bold text-white rounded-full uppercase tracking-wider"
-                    style={{ background: service.accentColor }}
-                  >
-                    {service.category.replace('_', ' ')}
-                  </div>
-                </div>
-
-                <div className="space-y-2 text-xs text-charcoal/70 mb-4 divide-y divide-border">
-                  <div className="flex justify-between py-2">
-                    <span>Duration</span>
-                    <span className="font-semibold text-navy">{service.duration} minutes</span>
-                  </div>
-                  <div className="flex justify-between py-2">
-                    <span>Deposit required</span>
-                    <span className="font-semibold text-aqua">{service.deposit} EGP (50%)</span>
-                  </div>
-                  <div className="flex justify-between py-2">
-                    <span>Balance at clinic</span>
-                    <span className="font-semibold text-navy">{service.price - service.deposit} EGP</span>
-                  </div>
-                  <div className="flex justify-between py-2">
-                    <span>Payment via</span>
-                    <span className="font-semibold text-navy">Paymob · EGP</span>
-                  </div>
-                </div>
-
-                <Link
-                  href={service.bookingHref}
-                  className="block w-full py-3 text-center text-sm font-bold text-white rounded-xl hover:opacity-90 transition-all shadow-sm"
-                  style={{ background: service.accentColor }}
-                >
-                  Book this service
-                </Link>
-                <Link
-                  href="/clinics"
-                  className="block w-full py-2 mt-2 text-center text-xs font-medium text-charcoal/60 hover:text-aqua transition-colors"
-                >
-                  Browse clinics offering this →
-                </Link>
-              </div>
-
-              {/* Trust badges */}
-              <div className="bg-cream rounded-xl border border-border p-4 space-y-2.5 text-xs text-muted">
-                {[
-                  { icon: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z', text: 'Secure deposit payment via Paymob' },
-                  { icon: 'M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 14.5v-5l3.5 2-3.5 3z', text: 'Live availability — no double booking' },
-                  { icon: 'M20 6L9 17l-5-5', text: 'Instant confirmation on payment' },
-                ].map((b) => (
-                  <div key={b.text} className="flex items-start gap-2">
-                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5 shrink-0 text-aqua">
-                      <path d={b.icon} />
-                    </svg>
-                    {b.text}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
+        </Section>
+      ) : null}
+    </>
   )
 }

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" width="800" height="800" role="img" aria-label="Placeholder render of a single tooth on a studio stage">
+  <defs>
+    <radialGradient id="bg" cx="0.5" cy="0.36" r="0.7">
+      <stop offset="0%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#E7EEE8"/>
+    </radialGradient>
+    <linearGradient id="enamel" x1="0.2" y1="0" x2="0.85" y2="1">
+      <stop offset="0%" stop-color="#FFFDF8"/>
+      <stop offset="62%" stop-color="#F0EADC"/>
+      <stop offset="100%" stop-color="#D8CFBC"/>
+    </linearGradient>
+    <filter id="soft" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="22"/>
+    </filter>
+  </defs>
+
+  <rect width="800" height="800" fill="url(#bg)"/>
+  <ellipse cx="400" cy="640" rx="190" ry="40" fill="#8C958F" opacity="0.22" filter="url(#soft)"/>
+
+  <g transform="translate(400 400)">
+    <!-- Crown -->
+    <path d="M-118 -40 C-118 -140 -70 -212 0 -212 C70 -212 118 -140 118 -40 C118 40 96 130 66 196 C48 236 26 252 8 244 C-14 234 -22 190 -34 150 C-48 104 -62 62 -78 44 C-96 22 -118 -6 -118 -40 Z"
+          fill="url(#enamel)" stroke="#C9C0AC" stroke-width="3" stroke-linejoin="round"/>
+    <!-- Root canal hint -->
+    <path d="M-16 -60 C-16 40 -8 130 -2 210" fill="none" stroke="#C9C0AC" stroke-width="5" stroke-linecap="round" opacity="0.6"/>
+    <!-- Highlight -->
+    <path d="M-84 -66 C-84 -132 -48 -178 -12 -184" fill="none" stroke="#FFFFFF" stroke-width="14" stroke-linecap="round" opacity="0.55"/>
+  </g>
+
+  <text x="400" y="722" text-anchor="middle" font-family="Manrope, Inter, sans-serif" font-size="21" letter-spacing="4" fill="#68716C">PLACEHOLDER MODEL — NOT FINAL EQUIPMENT</text>
+</svg>

@@ -104,7 +104,7 @@ export default function LoginPage() {
                 <input type="checkbox" className="rounded border-border text-aqua focus:ring-aqua/30" />
                 Remember me
               </label>
-              <Link href="#" className="text-aqua hover:text-aqua-dark text-xs font-medium">
+              <Link href="#" className="inline-flex min-h-11 items-center text-aqua hover:text-aqua-dark text-xs font-medium">
                 Forgot password?
               </Link>
             </div>
@@ -125,7 +125,7 @@ export default function LoginPage() {
 
           <div className="mt-6 text-center text-sm text-muted">
             Don&apos;t have an account?{' '}
-            <Link href="/auth/register" className="text-aqua hover:text-aqua-dark font-medium">
+            <Link href="/auth/register" className="inline-flex min-h-11 items-center text-aqua hover:text-aqua-dark font-medium">
               Create one
             </Link>
           </div>

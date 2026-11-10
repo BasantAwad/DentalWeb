@@ -32,15 +32,27 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Clinic not found' }, { status: 404 })
   }
 
-  // Get operating hours for the weekday
+  // Get operating hours for the weekday.
+  // Facility-wide hours apply to every resource; resource-specific hours
+  // override them. They are fetched separately because a single `.or()` filter
+  // cannot express "either facility-wide or this resource".
   const weekday = date.getDay() // 0=Sunday in JS, matches Egypt convention
-  const { data: hours } = await supabase
+  const { data: facilityHours } = await supabase
+    .from('operating_hours')
+    .select('start_time, end_time')
+    .eq('clinic_id', clinicId)
+    .eq('weekday', weekday)
+    .is('resource_id', null)
+
+  const { data: resourceHours } = await supabase
     .from('operating_hours')
     .select('start_time, end_time')
     .eq('clinic_id', clinicId)
     .eq('weekday', weekday)
     .eq('resource_id', resourceId)
-    .or(`resource_id.is_null`)
+
+  // Resource-specific hours win when present.
+  const hours = resourceHours?.length ? resourceHours : facilityHours
 
   // Get existing bookings/holds for the resource on that date
   const startOfDay = new Date(date)
@@ -64,15 +76,24 @@ export async function GET(request: NextRequest) {
     .gte('start_dt', startOfDay.toISOString())
     .lt('end_dt', endOfDay.toISOString())
 
-  // Get availability blocks
-  const { data: blocks } = await supabase
+  // Get availability blocks — facility-wide closures plus resource blocks.
+  const { data: facilityBlocks } = await supabase
+    .from('availability_blocks')
+    .select('start_dt, end_dt, reason')
+    .eq('clinic_id', clinicId)
+    .is('resource_id', null)
+    .gte('start_dt', startOfDay.toISOString())
+    .lt('end_dt', endOfDay.toISOString())
+
+  const { data: resourceBlocks } = await supabase
     .from('availability_blocks')
     .select('start_dt, end_dt, reason')
     .eq('clinic_id', clinicId)
     .eq('resource_id', resourceId)
-    .or(`resource_id.is_null`)
     .gte('start_dt', startOfDay.toISOString())
     .lt('end_dt', endOfDay.toISOString())
+
+  const blocks = [...(facilityBlocks ?? []), ...(resourceBlocks ?? [])]
 
   // Build availability from operating hours, subtracting occupied times
   const occupied = new Map<string, { start: Date, end: Date, status: string }>()
@@ -153,14 +174,15 @@ export async function GET(request: NextRequest) {
   }
 
   return NextResponse.json({
-    clinic: { timezone: clinic.timezone, depositPct: clinic.deposit_pct, cancellationCutoff: clinic.cancellation_cutoff_hours },
     date: dateStr,
     resourceId,
+    timezone: clinic.timezone,
+    depositPct: clinic.deposit_pct,
     slots,
     summary: {
       totalSlots: slots.length,
       availableSlots: slots.filter(s => s.available).length,
-      isFullyReserved: slots.every(s => !s.available),
+      isFullyReserved: slots.length > 0 && slots.every(s => !s.available),
       isPartiallyBooked: slots.some(s => s.available) && slots.some(s => !s.available),
     },
   })

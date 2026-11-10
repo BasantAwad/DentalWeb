@@ -170,7 +170,7 @@ export default function AboutPage() {
             <a href="https://sketchfab.com/DundeeDental" target="_blank" rel="noopener noreferrer" className="text-aqua hover:underline">
               University of Dundee, School of Dentistry
             </a>, licensed under{' '}
-            <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer" className="text-aqua hover:underline">
+            <a href="http://creativecommons.org/licenses/by/4.0/" target="_blank" rel="noopener noreferrer" className="inline-flex min-h-11 items-center text-aqua hover:underline">
               CC-BY-4.0
             </a>.
           </p>

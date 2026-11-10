@@ -1,4 +1,12 @@
 // Central services data — used on homepage accordion, services index, and individual pages
+//
+// Rates for the two confirmed rental services come from src/lib/pricing.ts,
+// which mirrors docs/BOOKING_BUSINESS_RULES.md. Do not duplicate them here.
+
+import {
+  DENTAL_CHAIR_HOURLY_EGP,
+  PHANTOM_HEAD_HOURLY_EGP,
+} from './pricing'
 
 export const SERVICES = [
   {
@@ -90,13 +98,13 @@ Supervision can be arranged on request. Ideal for practice sessions, shadowing, 
 and clinical case completion.
     `.trim(),
     duration: 60,
-    price: 120,
-    deposit: 60,
+    price: DENTAL_CHAIR_HOURLY_EGP,
+    deposit: DENTAL_CHAIR_HOURLY_EGP / 2,
     image:
       'https://images.unsplash.com/photo-1576086213369-97a306d36557?w=800&h=600&fit=crop&q=80',
     coverImage:
       'https://images.unsplash.com/photo-1629909613654-28e377c37b09?w=1400&h=600&fit=crop&q=80',
-    accentColor: '#1a1a2e',
+    accentColor: '#202522',
     bookingHref: '/chair-rental/dental-chair',
     highlights: ['Fully equipped chair', 'Sterile instrument pack', 'Flexible hours', 'Supervision available'],
   },
@@ -124,13 +132,13 @@ Sessions are timed and structured — book 1–8 hours. Additional instrument se
 Common uses: composite placement, crown prep, RCT access, impression taking.
     `.trim(),
     duration: 60,
-    price: 180,
-    deposit: 90,
+    price: PHANTOM_HEAD_HOURLY_EGP,
+    deposit: PHANTOM_HEAD_HOURLY_EGP / 2,
     image:
       'https://images.unsplash.com/photo-1598256989514-c2f2aadcf2e9?w=800&h=600&fit=crop&q=80',
     coverImage:
       'https://images.unsplash.com/photo-1631815587646-b85a1bb027e1?w=1400&h=600&fit=crop&q=80',
-    accentColor: '#2d8a5e',
+    accentColor: '#2F7772',
     bookingHref: '/chair-rental/dummy-head',
     highlights: ['Phantom head unit', 'Handpieces included', 'Book 1–8 hrs', 'OSCE-ready setup'],
   },

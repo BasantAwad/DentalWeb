@@ -1,95 +1,311 @@
 @import "tailwindcss";
 
+/* ==========================================================================
+   DentalWeb — Design tokens
+   Source of truth: docs/HIGH_FIDELITY_VISUAL_DESIGN_SPEC.md
+   Two layers:
+     1. Primitives  — fixed brand values. Never flip.
+     2. Semantics   — role values that flip with `data-theme` on a section.
+   ========================================================================== */
+
 :root {
-  --background: #faf9f7;
-  --foreground: #1a1a2e;
-  --navy: #1a1a2e;
-  --charcoal: #2d2d44;
-  --ivory: #faf9f7;
-  --cream: #f5f3ef;
-  --aqua: #0ea5a0;
-  --aqua-light: #e0f5f3;
-  --aqua-dark: #0c8a85;
-  --gold: #c9a96e;
-  --border: #e5e2dc;
-  --muted: #6b6b7b;
-  --danger: #d94a4a;
-  --success: #2d8a5e;
-  --warning: #d4a030;
+  /* ── Primitive palette ─────────────────────────────────────────────── */
+  --color-porcelain-50: #f8f7f3;
+  --color-porcelain-100: #f2f0e9;
+  --color-chalk: #ffffff;
+  --color-graphite-900: #202522;
+  --color-graphite-800: #2b322f;
+  --color-graphite-700: #3b4540;
+  --color-slate-600: #68716c;
+  --color-slate-400: #929a94;
+  --color-teal-700: #245e59;
+  --color-teal-600: #2f7772;
+  --color-teal-100: #ddebe6;
+  --color-sage-200: #c8d9cf;
+  --color-sage-100: #e7eee8;
+  --color-stone-300: #d8d1c5;
+  --color-stone-200: #e6e0d6;
+  --color-clay-500: #c87963;
+  --color-success: #287a55;
+  --color-warning: #98601c;
+  --color-danger: #b44747;
+  --color-info: #386b91;
+
+  /* ── Typography ────────────────────────────────────────────────────── */
+  --font-display: "Manrope Variable", "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-interface: "Inter Variable", ui-sans-serif, system-ui, -apple-system, sans-serif;
+
+  /* ── Shape ─────────────────────────────────────────────────────────── */
+  --radius-control: 12px;
+  --radius-input: 10px;
+  --radius-panel: 16px;
+  --radius-frame: 22px;
+
+  /* ── Layout ────────────────────────────────────────────────────────── */
+  --page-max: 1440px;
+  --page-gutter: 6vw;
+  --nav-height: 80px;
+
+  /* ── Motion ────────────────────────────────────────────────────────── */
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+  --ease-inout: cubic-bezier(0.65, 0, 0.35, 1);
+  --dur-hover: 160ms;
+  --dur-ui: 220ms;
+  --dur-theme: 260ms;
+
+  /* ── Semantic tokens — light section defaults ───────────────────────── */
+  --bg: var(--color-porcelain-100);
+  --bg-elevated: var(--color-chalk);
+  --bg-sunken: var(--color-sage-100);
+  --fg: var(--color-graphite-900);
+  --fg-muted: var(--color-slate-600);
+  --fg-subtle: var(--color-slate-400);
+  --line: var(--color-stone-300);
+  --line-soft: var(--color-stone-200);
+  --brand: var(--color-teal-700);
+  --brand-hover: #1c4b47;
+  --brand-fg: var(--color-chalk);
+  --brand-surface: var(--color-teal-100);
+  --on-dark-fg: var(--color-porcelain-50);
+  --on-dark-muted: #b3b8b4;
+  --on-dark-line: rgba(242, 240, 233, 0.18);
+  --on-dark-surface: var(--color-graphite-800);
+  --focus-ring: var(--color-teal-600);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --color-navy: var(--navy);
-  --color-charcoal: var(--charcoal);
-  --color-ivory: var(--ivory);
-  --color-cream: var(--cream);
-  --color-aqua: var(--aqua);
-  --color-aqua-light: var(--aqua-light);
-  --color-aqua-dark: var(--aqua-dark);
-  --color-gold: var(--gold);
-  --color-border: var(--border);
-  --color-muted: var(--muted);
-  --color-danger: var(--danger);
-  --color-success: var(--success);
-  --color-warning: var(--warning);
-  --font-sans: "Inter", "Segoe UI", system-ui, sans-serif;
+[data-theme="dark"] {
+  --bg: var(--color-graphite-900);
+  --bg-elevated: var(--color-graphite-800);
+  --bg-sunken: #1a1e1c;
+  --fg: var(--color-porcelain-50);
+  --fg-muted: #a7ada9;
+  --fg-subtle: #7d857f;
+  --line: rgba(242, 240, 233, 0.16);
+  --line-soft: rgba(242, 240, 233, 0.09);
+  --brand: #4a9a94;
+  --brand-hover: #5aa9a2;
+  --brand-fg: #0d1413;
+  --brand-surface: rgba(74, 154, 148, 0.16);
+  --focus-ring: #6fbdb6;
 }
+
+/* Tailwind v4 token bridge. `inline` keeps the var() reference so semantic
+   tokens resolve at use time and therefore follow `data-theme`. */
+@theme inline {
+  /* primitives exposed as utilities */
+  --color-porcelain-50: var(--color-porcelain-50);
+  --color-porcelain-100: var(--color-porcelain-100);
+  --color-chalk: var(--color-chalk);
+  --color-graphite-900: var(--color-graphite-900);
+  --color-graphite-800: var(--color-graphite-800);
+  --color-graphite-700: var(--color-graphite-700);
+  --color-slate-600: var(--color-slate-600);
+  --color-slate-400: var(--color-slate-400);
+  --color-teal-700: var(--color-teal-700);
+  --color-teal-600: var(--color-teal-600);
+  --color-teal-100: var(--color-teal-100);
+  --color-sage-200: var(--color-sage-200);
+  --color-sage-100: var(--color-sage-100);
+  --color-stone-300: var(--color-stone-300);
+  --color-stone-200: var(--color-stone-200);
+  --color-clay-500: var(--color-clay-500);
+  --color-success: var(--color-success);
+  --color-warning: var(--color-warning);
+  --color-danger: var(--color-danger);
+  --color-info: var(--color-info);
+
+  /* semantic (theme-aware) utilities */
+  --color-bg: var(--bg);
+  --color-surface: var(--bg-elevated);
+  --color-sunken: var(--bg-sunken);
+  --color-fg: var(--fg);
+  --color-fg-muted: var(--fg-muted);
+  --color-fg-subtle: var(--fg-subtle);
+  --color-line: var(--line);
+  --color-line-soft: var(--line-soft);
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-fg: var(--brand-fg);
+  --color-brand-surface: var(--brand-surface);
+
+  /* legacy aliases — existing pages keep compiling and restyle onto the
+     approved palette instead of the previous navy/aqua theme */
+  --color-background: var(--bg);
+  --color-foreground: var(--fg);
+  --color-navy: var(--color-graphite-900);
+  --color-charcoal: var(--color-graphite-700);
+  --color-ivory: var(--color-porcelain-50);
+  --color-cream: var(--color-porcelain-100);
+  --color-aqua: var(--color-teal-600);
+  --color-aqua-light: var(--color-teal-100);
+  --color-aqua-dark: var(--color-teal-700);
+  --color-gold: var(--color-clay-500);
+  --color-border: var(--color-stone-300);
+  --color-muted: var(--color-slate-600);
+  --color-danger: var(--color-danger);
+  --color-success: var(--color-success);
+  --color-warning: var(--color-warning);
+
+  --font-sans: var(--font-interface);
+  --font-display: var(--font-display);
+
+  --radius-control: 12px;
+  --radius-input: 10px;
+  --radius-panel: 16px;
+  --radius-frame: 22px;
+
+  --text-display-xl: clamp(3.25rem, 8vw, 6rem);
+  --text-display-xl--line-height: 0.99;
+  --text-display-l: clamp(2.75rem, 5.6vw, 4.5rem);
+  --text-display-l--line-height: 1.02;
+  --text-h1: clamp(2.25rem, 4vw, 3.25rem);
+  --text-h1--line-height: 1.08;
+  --text-h2: clamp(1.875rem, 3vw, 2.5rem);
+  --text-h2--line-height: 1.12;
+  --text-h3: clamp(1.375rem, 2vw, 1.75rem);
+  --text-h3--line-height: 1.2;
+  --text-h4: 1.3125rem;
+  --text-h4--line-height: 1.25;
+  --text-body-l: 1.125rem;
+  --text-body-l--line-height: 1.55;
+  --text-body: 1rem;
+  --text-body--line-height: 1.55;
+  --text-small: 0.875rem;
+  --text-small--line-height: 1.45;
+  --text-label: 0.75rem;
+  --text-label--line-height: 1.3;
+}
+
+/* ==========================================================================
+   Base
+   ========================================================================== */
 
 * {
   scrollbar-width: thin;
-  scrollbar-color: var(--aqua) var(--cream);
+  scrollbar-color: var(--color-stone-300) transparent;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: "Inter", "Segoe UI", system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-interface);
+  font-feature-settings: "cv02", "cv03", "cv04", "cv11";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+h4,
+.display {
+  font-family: var(--font-display);
+  letter-spacing: -0.02em;
 }
 
 ::selection {
-  background: var(--aqua);
-  color: white;
+  background: var(--color-teal-600);
+  color: #fff;
 }
 
-@keyframes fade-in {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
+:focus-visible {
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 3px;
+  border-radius: 4px;
 }
 
-@keyframes slide-up {
-  from { opacity: 0; transform: translateY(24px); }
-  to { opacity: 1; transform: translateY(0); }
+/* Tabular numerals for prices, durations and times. */
+.tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
 }
 
-@keyframes scale-in {
-  from { opacity: 0; transform: scale(0.95); }
-  to { opacity: 1; transform: scale(1); }
+/* ==========================================================================
+   Layout helpers
+   ========================================================================== */
+
+.page {
+  width: 100%;
+  max-width: var(--page-max);
+  margin-inline: auto;
+  padding-inline: clamp(20px, var(--page-gutter), 96px);
 }
 
-@keyframes float {
-  0%, 100% { transform: translateY(0px); }
-  50% { transform: translateY(-8px); }
+.section-y {
+  padding-block: clamp(64px, 9vw, 160px);
 }
 
-.animate-fade-in { animation: fade-in 0.5s ease-out both; }
-.animate-slide-up { animation: slide-up 0.6s ease-out both; }
-.animate-scale-in { animation: scale-in 0.3s ease-out both; }
-.animate-float { animation: float 4s ease-in-out infinite; }
+.grid-12 {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: clamp(16px, 2.4vw, 32px);
+}
 
-.stagger-1 { animation-delay: 0.1s; }
-.stagger-2 { animation-delay: 0.2s; }
-.stagger-3 { animation-delay: 0.3s; }
-.stagger-4 { animation-delay: 0.4s; }
-.stagger-5 { animation-delay: 0.5s; }
+@media (max-width: 1024px) {
+  .grid-12 {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 640px) {
+  .grid-12 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+/* ==========================================================================
+   Motion
+   ========================================================================== */
 
 @media (prefers-reduced-motion: reduce) {
-  .animate-fade-in, .animate-slide-up, .animate-scale-in, .animate-float {
-    animation: none;
-    opacity: 1;
-    transform: none;
+  html {
+    scroll-behavior: auto;
   }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ==========================================================================
+   Blueprint theming — the supplied plan is re-coloured with CSS variables so
+   it can live inside the approved palette without editing its geometry.
+
+   Palette mapping (docs/HIGH_FIDELITY_VISUAL_DESIGN_SPEC.md §3.1):
+     plan line    → Sage 200 / Mineral Teal
+     plan fill    → Graphite 800 / Graphite 700
+     plan accent  → Clay 500
+     plan gums    → Danger (the only red in the plan, and it reads as anatomy)
+     plan teeth   → Porcelain 50
+   ========================================================================== */
+
+.plan-root {
+  --plan-bg: #202522;
+  --plan-line: #7fc3bc;
+  --plan-fill: #2b322f;
+  --plan-fill-2: #3b4540;
+  --plan-metal: #68716c;
+  --plan-metal-2: #929a94;
+  --plan-metal-3: #454e49;
+  --plan-soft: #c8d9cf;
+  --plan-accent: #c87963;
+  --plan-gums: #b44747;
+  --plan-gums-dark: #8f3737;
+  --plan-teeth: #f2f0e9;
+  --plan-hatch: rgba(127, 195, 188, 0.28);
+}
+
+.plan-root svg {
+  display: block;
+  width: 100%;
+  height: 100%;
 }
