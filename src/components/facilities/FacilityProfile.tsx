@@ -2,7 +2,13 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { getFacility, type FacilityDetail } from '@/lib/platform-api'
+import {
+  getFacility,
+  listCourses,
+  type FacilityDetail,
+  type CourseSummary,
+} from '@/lib/platform-api'
+import { TRAINING_TYPE_LABEL } from '@/lib/account-types'
 import Section, { Eyebrow, Rule } from '@/components/ui/Section'
 import { ButtonLink } from '@/components/ui/Button'
 import Breadcrumb from '@/components/ui/Breadcrumb'
@@ -30,6 +36,7 @@ type Status = 'loading' | 'ready' | 'not-found' | 'unavailable' | 'error'
  */
 export default function FacilityProfile({ slug }: { slug: string }) {
   const [facility, setFacility] = useState<FacilityDetail | null>(null)
+  const [courses, setCourses] = useState<CourseSummary[]>([])
   const [status, setStatus] = useState<Status>('loading')
   const [message, setMessage] = useState('')
 
@@ -51,6 +58,15 @@ export default function FacilityProfile({ slug }: { slug: string }) {
         }
         setFacility(payload.facility)
         setStatus('ready')
+
+        // The courses this facility teaches. A failure here must not break
+        // the profile — the section simply stays out of the way.
+        try {
+          const coursePayload = await listCourses({ clinicId: payload.facility.id })
+          if (!cancelled) setCourses(coursePayload.courses ?? [])
+        } catch {
+          if (!cancelled) setCourses([])
+        }
       } catch (error) {
         if (cancelled) return
         setStatus('error')
@@ -251,6 +267,100 @@ export default function FacilityProfile({ slug }: { slug: string }) {
                   </p>
                 )}
               </section>
+
+              {/* Courses — only when this facility actually teaches them */}
+              {courses.length > 0 ? (
+                <section aria-labelledby="courses-heading" className="mt-16">
+                  <Eyebrow>Courses</Eyebrow>
+                  <h2
+                    id="courses-heading"
+                    className="mt-5 font-display text-[clamp(1.5rem,2.6vw,2rem)] font-semibold tracking-[-0.025em]"
+                  >
+                    Courses offered here
+                  </h2>
+                  <p className="mt-3 max-w-xl text-[0.9375rem] leading-relaxed text-graphite-700">
+                    Programmes this facility teaches — with their own schedule,
+                    capacity and price.
+                  </p>
+
+                  <ul className="mt-7">
+                    {courses.map((course, index) => (
+                      <Reveal as="li" key={course.id} delay={index * 0.04}>
+                        <article className="border-b border-stone-300 py-6 first:border-t">
+                          <div className="flex flex-wrap items-start justify-between gap-x-8 gap-y-3">
+                            <div className="min-w-0 flex-1">
+                              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                                {course.subject ? (
+                                  <span className="text-[0.75rem] font-semibold uppercase tracking-[0.1em] text-teal-700">
+                                    {course.subject}
+                                  </span>
+                                ) : null}
+                                <span className="text-[0.75rem] uppercase tracking-[0.1em] text-slate-600">
+                                  {TRAINING_TYPE_LABEL[course.trainingType]}
+                                </span>
+                              </div>
+
+                              <h3 className="mt-2 font-display text-[1.125rem] font-semibold tracking-[-0.02em] text-graphite-900">
+                                <Link
+                                  href={`/courses/${course.slug}`}
+                                  className="transition-colors hover:text-teal-700"
+                                >
+                                  {course.title}
+                                </Link>
+                              </h3>
+
+                              {course.description ? (
+                                <p className="mt-1.5 max-w-xl text-[0.875rem] leading-relaxed text-graphite-700">
+                                  {course.description}
+                                </p>
+                              ) : null}
+
+                              <p className="tnum mt-2 text-[0.8125rem] text-slate-600">
+                                {new Date(course.startDt).toLocaleDateString('en-GB', {
+                                  day: 'numeric',
+                                  month: 'short',
+                                  year: 'numeric',
+                                })}
+                                {course.instructor ? ` · with ${course.instructor}` : ''}
+                              </p>
+                            </div>
+
+                            <div className="flex flex-col items-start gap-1 sm:items-end">
+                              <span className="tnum font-display text-[1.125rem] font-semibold text-graphite-900">
+                                {course.priceEgp === 0 ? 'Free' : `${course.priceEgp} EGP`}
+                              </span>
+                              <span
+                                className={[
+                                  'text-[0.75rem] font-semibold uppercase tracking-[0.08em]',
+                                  course.registration.open
+                                    ? 'text-teal-700'
+                                    : 'text-slate-600',
+                                ].join(' ')}
+                              >
+                                {course.registration.open
+                                  ? `${course.seatsRemaining} seat${course.seatsRemaining === 1 ? '' : 's'} left`
+                                  : (course.registration.reason ?? 'Registration closed')}
+                              </span>
+                              <Link
+                                href={`/courses/${course.slug}`}
+                                className="mt-1 text-[0.875rem] font-semibold text-graphite-900 underline decoration-stone-300 underline-offset-[6px] transition-colors hover:decoration-teal-600"
+                              >
+                                Register
+                              </Link>
+                            </div>
+                          </div>
+                        </article>
+                      </Reveal>
+                    ))}
+                  </ul>
+
+                  <div className="mt-7">
+                    <ButtonLink href="/courses" variant="secondary" withArrow>
+                      All courses on DentalWeb
+                    </ButtonLink>
+                  </div>
+                </section>
+              ) : null}
 
               {/* Equipment */}
               {activeResources.length > 0 ? (

@@ -650,12 +650,13 @@ LANGUAGE sql STABLE AS $$
   WITH
   -- Operating hours for the weekday of p_date in clinic timezone
   hours AS (
-    SELECT start_time, end_time
-    FROM operating_hours
-    WHERE clinic_id = p_clinic_id
-      AND weekday = EXTRACT(ISODOW FROM p_date::timestamptz AT TIME ZONE clinics.timezone) - 1
-      AND (effective_from IS NULL OR effective_from <= p_date)
-      AND (effective_to IS NULL OR effective_to >= p_date)
+    SELECT oh.start_time, oh.end_time
+    FROM operating_hours oh
+    JOIN clinics c ON c.id = oh.clinic_id
+    WHERE oh.clinic_id = p_clinic_id
+      AND oh.weekday = EXTRACT(ISODOW FROM p_date::timestamptz AT TIME ZONE c.timezone) - 1
+      AND (oh.effective_from IS NULL OR oh.effective_from <= p_date)
+      AND (oh.effective_to IS NULL OR oh.effective_to >= p_date)
   ),
   clinic_tz AS (
     SELECT timezone FROM clinics WHERE id = p_clinic_id
@@ -684,22 +685,22 @@ LANGUAGE sql STABLE AS $$
       AND end_dt > p_date
   )
   SELECT
-    h.start_time::timestamptz,
-    h.end_time::timestamptz,
+    (p_date + h.start_time) AT TIME ZONE clinic_tz.timezone,
+    (p_date + h.end_time) AT TIME ZONE clinic_tz.timezone,
     TRUE AS is_available,
     NULL::TEXT AS reason
   FROM hours h, clinic_tz
-  WHERE h.start_time::timestamptz AT TIME ZONE clinic_tz.timezone >= (p_date)::timestamptz AT TIME ZONE clinic_tz.timezone
-  AND h.end_time::timestamptz AT TIME ZONE clinic_tz.timezone <= (p_date + INTERVAL '1 day')::timestamptz AT TIME ZONE clinic_tz.timezone
+  WHERE (p_date + h.start_time) AT TIME ZONE clinic_tz.timezone >= (p_date)::timestamptz AT TIME ZONE clinic_tz.timezone
+  AND (p_date + h.end_time) AT TIME ZONE clinic_tz.timezone <= ((p_date + INTERVAL '1 day')::timestamp AT TIME ZONE clinic_tz.timezone)
   AND NOT EXISTS (
     SELECT 1 FROM occupied o
-    WHERE o.start_dt < h.end_time::timestamptz AT TIME ZONE clinic_tz.timezone
-      AND o.end_dt > h.start_time::timestamptz AT TIME ZONE clinic_tz.timezone
+    WHERE o.start_dt < (p_date + h.end_time) AT TIME ZONE clinic_tz.timezone
+      AND o.end_dt > (p_date + h.start_time) AT TIME ZONE clinic_tz.timezone
   )
   AND NOT EXISTS (
     SELECT 1 FROM blocks b
-    WHERE b.start_dt < h.end_time::timestamptz AT TIME ZONE clinic_tz.timezone
-      AND b.end_dt > h.start_time::timestamptz AT TIME ZONE clinic_tz.timezone
+    WHERE b.start_dt < (p_date + h.end_time) AT TIME ZONE clinic_tz.timezone
+      AND b.end_dt > (p_date + h.start_time) AT TIME ZONE clinic_tz.timezone
   );
 $$;
 
@@ -860,7 +861,7 @@ WHERE NOT EXISTS (SELECT 1 FROM resources LIMIT 1);
 
 -- Seed demo operating hours (Sun-Thu 9am-9pm, Sat 9am-5pm, Fri closed)
 INSERT INTO operating_hours (clinic_id, weekday, start_time, end_time)
-SELECT c.id, weekday, start_time, end_time
+SELECT c.id, weekday, start_time::time, end_time::time
 FROM (VALUES
   (0, '09:00', '21:00'),  -- Sunday
   (1, '09:00', '21:00'),  -- Monday
@@ -872,10 +873,9 @@ FROM (VALUES
 ) AS v(weekday, start_time, end_time)
 CROSS JOIN (SELECT id FROM clinics LIMIT 1) c
 WHERE NOT EXISTS (SELECT 1 FROM operating_hours LIMIT 1);
-
 -- Seed demo courses
 INSERT INTO courses (clinic_id, title, instructor, description, start_dt, end_dt, capacity, price_egp, deposit_egp, syllabus, status)
-SELECT c.id, title, instructor, description, start_dt, end_dt, capacity, price, deposit, syllabus, status
+SELECT c.id, title, instructor, description, start_dt::timestamptz, end_dt::timestamptz, capacity, price, deposit, syllabus, status
 FROM (VALUES
   ('Introduction to Dental Radiography', 'Dr. Sarah Mahmoud', 'Fundamentals of digital intraoral and panoramic radiography, radiation safety, and image interpretation.', '2026-10-12 09:00', '2026-10-16 17:00', 20, 2500, 1250, 'Day 1: Radiation physics and safety. Day 2: Intraoral techniques. Day 3: Panoramic imaging. Day 4: Image interpretation. Day 5: Practical exam.', 'upcoming'),
   ('Operative Dentistry Hands-On Workshop', 'Prof. Ahmed Hassan', 'Practical workshop covering cavity preparation and composite placement on dummy heads.', '2026-11-04 09:00', '2026-11-08 17:00', 12, 4800, 2400, 'Hands-on sessions with typodont models.', 'upcoming'),

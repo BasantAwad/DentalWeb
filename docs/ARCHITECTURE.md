@@ -67,10 +67,12 @@ The homepage introduces the platform. Everything that needs room to breathe
 lives on its own page.
 
 ```
-/                              Seven-scene homepage
+/                              Eight-scene homepage
 /services                      Service index
 /services/dental-chair         Product page — dental chair
 /services/phantom-head         Product page — phantom head
+/courses                       Course discovery — the third core service
+/courses/[slug]                Course detail, schedule and registration
 /facilities                    Facility discovery
 /facilities/[slug]             Facility profile
 /facilities/[slug]/room        Interactive room plan + station selection
@@ -78,7 +80,14 @@ lives on its own page.
 /tooth-planner                 Interactive tooth selection (optional)
 /manage                        Facility owner workspace
 /manage/[slug]                 A single facility's catalogue and resources
-/courses                       Courses published by facilities
+/manage/courses                Owner course management
+/account                       Client dashboard
+/account/profile               Personal information
+/account/bookings              Reservation history
+/account/courses               Course registration history
+/account/settings              Account and session
+/auth/login                    Sign in
+/auth/register                 Create an account
 /checkout/success              Post-payment return, verified server-side
 ```
 
@@ -98,14 +107,36 @@ Legacy URLs redirect permanently (`next.config.ts`):
 |---|---|---|---|
 | 1 | Hero | Graphite | Full-bleed 3D stage, editorial type left, rate strip along the base |
 | 2 | Platform | Chalk | Narrow statement column, four facts hung off a vertical rule, giant bleed word |
-| 3 | Two services | Porcelain | Split composition: object half, copy half, with an always-visible switcher |
-| 4 | The room | Graphite | Full-width blueprint with interactive markers, side notes in a narrow column |
-| 5 | How it works | Porcelain | Horizontal timeline on a single rail, worked example beneath |
-| 6 | Facilities | Chalk | Editorial rows rather than a card grid |
-| 7 | For owners | Graphite | Proposition left, designed workspace preview right |
+| 3 | Two rentals | Porcelain | Split composition: object half, copy half, with an always-visible switcher |
+| 4 | Courses | Graphite | Editorial statement, "Explore Courses" CTA, live schedule of upcoming courses |
+| 5 | The room | Graphite | Full-width blueprint with interactive markers, side notes in a narrow column |
+| 6 | How it works | Porcelain | Horizontal timeline on a single rail, worked example beneath |
+| 7 | Facilities | Chalk | Editorial rows rather than a card grid |
+| 8 | For owners | Graphite | Proposition left, designed workspace preview right |
 
 Each section declares its theme explicitly through `data-section-theme`, and the
 navigation reads it to switch between its light and dark variants.
+
+### The three core services
+
+The platform communicates three distinct offerings, and they are never merged
+into one list:
+
+| Service | Price | Where |
+|---|---|---|
+| Dental chair rental | 150 EGP / hour | `/services/dental-chair` |
+| Phantom-head training | 100 EGP / hour | `/services/phantom-head` |
+| Courses & practical training | The course's own price | `/courses` |
+
+The first two are hourly rentals with a 50% deposit. **A course is not a
+rental.** It has its own instructor, schedule, capacity, learning objectives,
+deadline and payment policy (`payment_policy` of `free`, `full` or `deposit`
+with its own percentage). The rental rate and the 50% rental deposit are never
+applied to a course — see `src/lib/course-utils.ts` and the `enroll_in_course()`
+function, which computes the amount owed from the course's own terms.
+
+The header exposes all three through a `Services` panel, and the mobile menu
+repeats them as a labelled group so none of them is hidden behind a hover.
 
 ---
 
@@ -123,19 +154,31 @@ navigation reads it to switch between its light and dark variants.
 │ APPLICATION LAYER                          src/components/
 │   home/       homepage scenes                                │
 │   service/    product pages                                  │
+│   courses/    discovery + course detail                      │
+│   account/    client dashboard, profile, history             │
 │   facilities/ discovery + profile                            │
 │   booking/    the reservation flow                           │
 │   room/       blueprint + station selection                  │
 │   teeth/      FDI tooth selection                            │
-│   manage/     owner workspace                                │
-│   lib/pricing.ts   rates and the 50% deposit rule             │
+│   manage/     owner workspace + course management            │
+│   site/       header, services menu, account menu, footer    │
+│   lib/pricing.ts      rates and the 50% deposit rule         │
+│   lib/course-utils.ts course registration state and terms    │
+├─────────────────────────────────────────────────────────────┤
+│ SESSION & AUTHORISATION                       src/lib/auth.ts
+│   getSessionUser()          the signed-in platform user      │
+│   getFacilityMemberships()  facilities the user may manage   │
+│   canManageFacility()       owner/manager check              │
 ├─────────────────────────────────────────────────────────────┤
 │ BACKEND                                      src/app/api/
-│   facilities/        list, detail, station availability       │
-│   availability/      slot generation per resource              │
-│   booking/           create, quote, read                       │
-│   courses/           published courses                         │
-│   checkout/          Paymob session + webhook                  │
+│   auth/         register, sign-in, sign-out, session         │
+│   facilities/   list, detail, station availability           │
+│   availability/ slot generation per resource                 │
+│   booking/      create, quote, read                          │
+│   courses/      discovery, detail, transactional enrolment  │
+│   account/      profile, bookings, courses, overview         │
+│   manage/       owner course management, owned facilities    │
+│   checkout/     Paymob session + webhook                     │
 └─────────────────────────────────────────────────────────────┘
 ```
 
@@ -151,6 +194,159 @@ labels the difference between live data and a preview.
 a preview computed from the same rule for responsiveness, but the amount that
 is charged is always recomputed by `POST /api/booking` and `POST
 /api/booking/quote` from the service's configured rate.
+
+**Authorisation never trusts the browser.** Every route handler resolves the
+caller from the session cookie. No handler reads a user id, a clinic id or a
+role from a request body to decide what the caller may see or change. A body
+may name *which* of the caller's own facilities to act on; it may never name
+*whose* data the caller is.
+
+---
+
+## 3a. Authentication
+
+The platform previously had **no session layer at all** — the login and
+registration pages were a frontend simulation with a timeout. The account area
+needed a real identity, so one was built:
+
+| Piece | File | Role |
+|---|---|---|
+| Cookie-aware server client | `src/lib/supabase/server.ts` | Server-side Supabase client that carries the visitor's session |
+| Session resolution | `src/lib/auth.ts` | `getSessionUser()`, `getFacilityMemberships()`, `canManageFacility()` |
+| Registration | `POST /api/auth/register` | Creates the auth identity, mirrors it into `platform_users`, seeds `user_profiles` |
+| Sign in | `POST /api/auth/sign-in` | Verifies credentials, sets the session cookie |
+| Sign out | `POST /api/auth/sign-out` | Ends the session, clears the cookies |
+| Session probe | `GET /api/auth/session` | Returns the signed-in identity, or `null` |
+
+`platform_users.id` is the identifier that bookings and enrolments reference;
+`platform_users.uid` links that business record to the authentication
+provider's user id. The two are deliberately separate so the auth provider can
+be replaced without a data migration.
+
+The sign-in and registration pages are real forms. The header's account menu
+shows the signed-in identity with initials, or a sign-in/register pair, and
+resolves the session client-side so the header does not flash.
+
+---
+
+## 3b. Courses and enrolment
+
+### Schema — `supabase/migrations/0001_courses_and_accounts.sql`
+
+| Object | Purpose |
+|---|---|
+| `user_profiles` | Optional client and dental-student information, kept out of `platform_users` |
+| `instructors` | Course instructors, owned by a facility |
+| `courses` (extended) | slug, subject, specialty, academic level, training type, objectives, topics, theory/practice components, supervised-practice flag, materials, registration window, `payment_policy`, `deposit_pct`, `published_at`, `session_count`, and a `draft` status |
+| `course_sessions` | The individual sessions of a course |
+| `course_enrollments` | A student's registration; unique on `(course_id, user_id)` |
+| `payments` (extended) | `booking_id` becomes nullable; `course_enrollment_id` added; a CHECK allows exactly one owner |
+| `enroll_in_course()` | `SECURITY DEFINER` enrolment function |
+| `profile_completion()` | 0–100 completion score for the profile meter |
+
+**Capacity belongs to the course, not to the session.** Sessions describe when
+and where the teaching happens; the seat count is the course's `capacity`.
+That is the model the registration rules actually describe, and it avoids
+per-session capacity questions that the business has not answered.
+
+### The enrolment function
+
+`enroll_in_course(p_course_id, p_user_id)` does the whole job inside one
+transaction:
+
+1. Confirms the caller is enrolling **themselves** (`platform_users.uid =
+   auth.uid()`), so a user id in the request body is never trusted.
+2. Locks the course row `FOR UPDATE`, which serialises simultaneous
+   registrations for the last seat.
+3. Checks the course is published, active and inside its registration window.
+4. Refuses a duplicate registration for a live enrolment.
+5. Counts the live enrolments and refuses when the course is full.
+6. Computes the amount owed from the **course's own** payment policy.
+7. Writes the enrolment and returns the new seat count.
+
+The route handler (`POST /api/courses/[slug]/enroll`) only translates the
+function's refusal reasons into HTTP status codes. It does not re-implement
+any of the rules.
+
+### Verified against a real database
+
+`scripts/verify-enrollment.mjs` runs the schema, the migration and the
+function against an in-process Postgres (PGlite), and asserts 21 behaviours:
+registration succeeds, the enrolment row is written, a duplicate is refused
+and writes nothing, the last seat goes to exactly one of two concurrent
+callers, a third student is refused as full, a caller cannot register
+somebody else, the registration window and course status are enforced, a
+withdrawn enrolment releases its seat, a deposit course charges its own
+percentage rather than the rental rule, a free course requires no payment,
+the unique constraint holds independently of the function, and the profile
+completion score is correct.
+
+`npm run verify:db`
+
+This suite caught three real defects:
+
+| Defect | Effect | Fix |
+|---|---|---|
+| `IF FOUND` was tested after a `COUNT(*)` query | A `COUNT` always sets `FOUND` to true, so the `INSERT` branch was never taken and **no enrolment was ever created**. The function returned success with an empty enrolment. | `FOUND` is captured into `v_had_enrollment` immediately after the lookup that sets it. |
+| `get_resource_availability()` referenced `clinics.timezone` without joining `clinics` | The function failed to parse, so `supabase db push` aborted. | The `hours` CTE now joins `clinics`. |
+| The availability function cast `TIME` to `TIMESTAMPTZ`, and the demo seeds inserted text into `TIME` and `TIMESTAMPTZ` columns | The schema could not be applied at all, so neither the base schema nor the courses migration could reach a real database. | The times are combined with the date and cast explicitly: `(p_date + start_time) AT TIME ZONE timezone`. |
+
+### Course discovery and detail
+
+`GET /api/courses` supports search across title, description, instructor and
+subject; filters by subject, academic level, training type, facility and
+location; a date range; and sorting by date or price. It returns the courses
+with their live seat counts, and derives the facets from the result set so the
+filter lists cannot disagree with the listing.
+
+`GET /api/courses/[slug]` returns one course with its sessions, its instructor
+and the visitor's own enrolment. Only published courses (`upcoming`,
+`ongoing`, `completed`) are served; drafts never are.
+
+### Owner course management
+
+`/api/manage/courses` is scoped to the facilities the signed-in user owns or
+manages, through `clinic_memberships` — never through a clinic id in the
+request body. `GET /api/manage/facilities` returns that same list so a course
+is created against a facility the account actually owns.
+
+`GET /api/manage/courses/[id]/enrollments` returns the students registered
+for one course, with only what a facility needs to prepare a session: name,
+email, phone and the academic information the student chose to publish. It
+never returns the student's full profile, their unrelated reservations or
+their account settings.
+
+---
+
+## 3c. The client account area
+
+The account area is a quieter, more functional space than the public pages:
+a persistent sidebar on desktop, a scrollable tab strip on mobile.
+
+| Page | Contents |
+|---|---|
+| `/account` | Greeting, four activity counts, the next activities in chronological order, a unified activity timeline, quick actions |
+| `/account/profile` | Contact details, optional dental-student information, notification preferences, completion meter |
+| `/account/bookings` | Every reservation, grouped into upcoming / pending / completed / cancelled, with an expandable detail panel |
+| `/account/courses` | Every registration, grouped into upcoming / ongoing / completed / cancelled, with the session schedule |
+| `/account/settings` | Account details, password, and sign-out |
+
+Every figure is derived from the signed-in user's own records. The activity
+timeline is built from real booking and enrolment rows rather than from a
+separate event table, so it cannot drift from the history it describes.
+
+**The activity timeline is derived, not fabricated.** A reservation appears
+because it exists; a registration appears because it exists. There is no
+separate `activity_events` table to drift out of step.
+
+**Payment status comes from the payments table.** A reservation that has a
+paid row reports `paid` even if an earlier pending row exists, so a payment
+that later settled is never shown as outstanding.
+
+**The optional fields are genuinely optional.** The platform needs a name and
+an email to operate; university, academic year, professional status, date of
+birth, city and interests are only collected because a facility may ask for
+them to prepare a session.
 
 ---
 
@@ -285,9 +481,10 @@ Fonts are self-hosted via `@fontsource-variable/manrope` and
 
 ## 8. Known limitations
 
-- Facility, course and station listings require `NEXT_PUBLIC_SUPABASE_URL`
-  and `NEXT_PUBLIC_SUPABASE_ANON_KEY`. Until then the pages show an explicit
-  empty state rather than placeholder content.
+- Facility, course, station and account data require
+  `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY`. Until then
+  the pages show an explicit "not connected" state rather than placeholder
+  content, and the API answers `503 backend_not_configured`.
 - The homepage room scene is a labelled preview. Live station availability is
   wired into the `RoomPlan` component and the station API, and arrives with
   the facility booking flow.
@@ -295,9 +492,15 @@ Fonts are self-hosted via `@fontsource-variable/manrope` and
   registered but not the default rendering.
 - `public/models/molar/` and the old molar loader still exist; the
   `/tooth-planner` page uses a procedural FDI typodont instead.
-- Authentication is not implemented. `platform_users` and
-  `clinic_memberships` exist in the schema with RLS policies, but no session
-  layer is wired up, so facility-scoped dashboards are not yet reachable.
+- **Course payments are recorded, not collected.** The `payments` table now
+  carries a `course_enrollment_id`, and an enrolment records what is owed and
+  whether it is paid, but there is no checkout flow for a course yet. The
+  rental checkout remains the only live payment path.
+- **Course cancellation and refunds are not implemented.** The enrolment
+  status vocabulary supports `withdrawn` and `cancelled`, but no workflow
+  creates them. The platform does not invent a cancellation or refund policy.
+- The owner workspace still shows the facility catalogue, the resources and
+  the course links. A booking-management screen for owners is not built.
 - The admin screens under `src/app/admin` are the original demo screens and
   have not been restyled. They are not linked from the public navigation.
 
@@ -307,6 +510,10 @@ Fonts are self-hosted via `@fontsource-variable/manrope` and
 
 | Script | Purpose |
 |---|---|
+| `npm run verify:db` | Applies the schema and the courses migration to an in-process Postgres and asserts the enrolment rules. |
+| `npm run verify:audit` | Accessibility and layout audit across every public route at three viewport widths. |
+| `npm run verify:interactions` | Verifies the tooth arch, the room plan, the services menu, the course discovery filters and the account navigation. |
+| `npm run verify:resilience` | Checks the 3D fallbacks under reduced motion and without WebGL. |
 | `node scripts/extract-blueprint.mjs` | Re-extract the supplied blueprint into the reference SVG and the React component. |
 | `node scripts/inspect-glb.mjs <file.glb>` | Report a GLB's generator, attributes, materials, components, bounds and an ASCII silhouette per axis pair. |
 | `node scripts/check-composition.mjs` | Project each asset through its camera to verify screen coverage, grounding and cropping. |
@@ -322,6 +529,9 @@ Added:
 - `framer-motion` — interface transitions and scroll reveals.
 - `@fontsource-variable/manrope`, `@fontsource-variable/inter` — self-hosted
   typography.
+- `@electric-sql/pglite` (dev) — an in-process Postgres, so the schema, the
+  migration and the enrolment rules are verified against a real database
+  rather than described.
 
 Not added: any 3D library beyond what was already installed. No
 Draco/Meshopt decoder was added — three's loader handles Draco-compressed GLB

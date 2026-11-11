@@ -99,7 +99,7 @@ export default function ServiceShowcase() {
         {/* Heading + switcher */}
         <div className="grid-12 items-end gap-y-8">
           <div className="col-span-12 lg:col-span-6">
-            <Eyebrow>Two ways to practice</Eyebrow>
+            <Eyebrow>Rental services</Eyebrow>
             <h2 className="mt-6 font-display text-[clamp(2rem,4.6vw,3.5rem)] font-semibold leading-[1.04] tracking-[-0.03em]">
               Choose what you need.
             </h2>

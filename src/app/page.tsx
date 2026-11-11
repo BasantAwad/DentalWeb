@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Hero from '@/components/home/Hero'
 import PlatformIntro from '@/components/home/PlatformIntro'
 import ServiceShowcase from '@/components/home/ServiceShowcase'
+import CoursesShowcase from '@/components/home/CoursesShowcase'
 import RoomReveal from '@/components/home/RoomReveal'
 import BookingSteps from '@/components/home/BookingSteps'
 import FacilityDiscovery from '@/components/home/FacilityDiscovery'
@@ -25,11 +26,12 @@ export const metadata: Metadata = {
  *
  *   1. Hero            — the chair on a studio stage        (graphite)
  *   2. Platform        — what DentalWeb is                  (porcelain)
- *   3. Two services    — chair and phantom head             (porcelain)
- *   4. The room        — the supplied plan, interactive      (graphite)
- *   5. How it works    — the sequence and a worked example  (porcelain)
- *   6. Facilities      — a short preview of real listings   (chalk)
- *   7. For owners      — the management workspace           (graphite)
+ *   3. Two rentals     — chair and phantom head             (porcelain)
+ *   4. Courses         — teaching and practical training    (graphite)
+ *   5. The room        — the supplied plan, interactive      (graphite)
+ *   6. How it works    — the sequence and a worked example  (porcelain)
+ *   7. Facilities      — a short preview of real listings   (chalk)
+ *   8. For owners      — the management workspace           (graphite)
  *
  * The complete booking system, the full room selector and every service
  * detail live on their own pages.
@@ -43,6 +45,7 @@ export default function HomePage() {
       <Hero />
       <PlatformIntro />
       <ServiceShowcase />
+      <CoursesShowcase />
       <RoomReveal stations={{}} availabilitySource="preview" />
       <BookingSteps />
       <FacilityDiscovery />

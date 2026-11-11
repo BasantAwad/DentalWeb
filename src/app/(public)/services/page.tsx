@@ -8,7 +8,7 @@ import { ButtonLink } from '@/components/ui/Button'
 export const metadata: Metadata = {
   title: 'Services',
   description:
-    'Dental chair and phantom head rental by the hour, plus clinical services from published facilities. Book online with a 50% deposit.',
+    'Dental chair and phantom head rental by the hour, plus courses and practical training from published facilities. Book online with a 50% deposit.',
 }
 
 export default function ServicesIndexPage() {
@@ -32,8 +32,8 @@ export default function ServicesIndexPage() {
             </div>
             <div className="col-span-12 lg:col-span-4 lg:col-start-9">
               <p className="text-[1.0625rem] leading-relaxed text-graphite-700">
-                Two confirmed rental services with platform-wide rates, plus the
-                clinical services individual facilities publish.
+                Three ways to benefit from a dental facility: rent a chair, rent
+                a phantom-head station, or register for a course.
               </p>
             </div>
           </div>
@@ -101,6 +101,64 @@ export default function ServicesIndexPage() {
       </Section>
 
       {/* ── Clinical services from facilities ───────────────────────── */}
+      {/* Courses and practical training */}
+      <Section theme="chalk" className="relative overflow-hidden">
+        <div className="page py-16 md:py-20">
+          <div className="grid-12 gap-y-12">
+            <div className="col-span-12 lg:col-span-3">
+              <Eyebrow>Training</Eyebrow>
+              <h2 className="mt-5 font-display text-[clamp(1.5rem,2.6vw,2rem)] font-semibold tracking-[-0.025em]">
+                Courses and practical training
+              </h2>
+              <p className="mt-4 text-[0.9375rem] leading-relaxed text-graphite-700">
+                Programmes with their own instructor, schedule, capacity and
+                price — not an equipment rental.
+              </p>
+              <div className="mt-6">
+                <ButtonLink href="/courses" variant="secondary" withArrow>
+                  Explore courses
+                </ButtonLink>
+              </div>
+            </div>
+
+            <div className="col-span-12 lg:col-span-8 lg:col-start-5">
+              <p className="max-w-2xl font-display text-[clamp(1.375rem,2.4vw,1.75rem)] font-medium leading-[1.25] tracking-[-0.02em] text-graphite-900">
+                Learn the science. Practise the skill. Build confidence.
+              </p>
+              <ul className="mt-8 grid gap-x-10 sm:grid-cols-2">
+                {[
+                  {
+                    title: 'Theoretical',
+                    body: 'Explanations, demonstrations and structured teaching sessions for a subject you are studying.',
+                  },
+                  {
+                    title: 'Practical',
+                    body: 'Supervised hands-on practice in a real facility, with the equipment in front of you.',
+                  },
+                  {
+                    title: 'Combined',
+                    body: 'A theory block followed by supervised clinical practice in the same programme.',
+                  },
+                  {
+                    title: 'Its own registration rules',
+                    body: 'Each course sets its own price, capacity, deadline and payment policy. The hourly rental rate and the 50% deposit do not apply.',
+                  },
+                ].map((item) => (
+                  <li key={item.title} className="border-t border-stone-300 py-5">
+                    <p className="font-display text-[1.0625rem] font-semibold text-graphite-900">
+                      {item.title}
+                    </p>
+                    <p className="mt-1.5 text-[0.8125rem] leading-relaxed text-slate-600">
+                      {item.body}
+                    </p>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        </div>
+      </Section>
+
       {clinical.length > 0 ? (
         <Section theme="porcelain" className="relative overflow-hidden">
           <div className="page py-16 md:py-20">

@@ -40,7 +40,9 @@ export default function OwnerWorkspace({
   const [current, setCurrent] = useState<FacilityDetail | null>(facility)
   const [status, setStatus] = useState<'loading' | 'ready' | 'error'>('loading')
   const [message, setMessage] = useState('')
-  const [activeTab, setActiveTab] = useState<'overview' | 'resources'>('overview')
+  const [activeTab, setActiveTab] = useState<'overview' | 'resources' | 'courses'>(
+    'overview',
+  )
 
   const load = useCallback(async () => {
     try {
@@ -143,7 +145,10 @@ export default function OwnerWorkspace({
               >
                 View public page
               </ButtonLink>
-              <ButtonLink href={`/facilities/${current.slug}/room`} variant="on-dark" size="lg">
+              <ButtonLink href="/manage/courses" variant="on-dark" size="lg">
+                Manage courses
+              </ButtonLink>
+              <ButtonLink href={`/facilities/${current.slug}/room`} variant="tertiary-on-dark" size="lg">
                 Open room plan
               </ButtonLink>
             </div>
@@ -155,6 +160,7 @@ export default function OwnerWorkspace({
               [
                 { key: 'overview', label: 'Overview' },
                 { key: 'resources', label: 'Resources' },
+                { key: 'courses', label: 'Courses' },
               ] as const
             ).map((tab) => (
               <button
@@ -281,6 +287,43 @@ export default function OwnerWorkspace({
                     <div className="mt-6 flex flex-wrap gap-3">
                       <ButtonLink href="/auth/login" variant="primary">
                         Sign in to manage bookings
+                      </ButtonLink>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </>
+          ) : activeTab === 'courses' ? (
+            <>
+              <div className="grid-12 gap-y-12">
+                <div className="col-span-12 lg:col-span-4">
+                  <Eyebrow>Teaching</Eyebrow>
+                  <h2 className="mt-5 font-display text-[clamp(1.5rem,2.6vw,2rem)] font-semibold tracking-[-0.025em]">
+                    Courses
+                  </h2>
+                  <p className="mt-4 text-[0.9375rem] leading-relaxed text-graphite-700">
+                    Publish programmes with their own instructor, schedule,
+                    capacity and price. Students register against them directly,
+                    and you see every registration.
+                  </p>
+                </div>
+
+                <div className="col-span-12 lg:col-span-7 lg:col-start-6">
+                  <div className="rounded-[16px] border border-stone-300 bg-chalk p-6">
+                    <p className="text-[0.9375rem] leading-relaxed text-graphite-700">
+                      Course management is a dedicated area: create a course,
+                      set its schedule and capacity, publish it, and track who
+                      has registered and what they have paid.
+                    </p>
+                    <p className="mt-3 text-[0.875rem] leading-relaxed text-slate-600">
+                      Only the facilities you own or manage are visible there.
+                    </p>
+                    <div className="mt-6 flex flex-wrap gap-3">
+                      <ButtonLink href="/manage/courses" variant="primary">
+                        Open course management
+                      </ButtonLink>
+                      <ButtonLink href="/courses" variant="secondary">
+                        See the public course list
                       </ButtonLink>
                     </div>
                   </div>

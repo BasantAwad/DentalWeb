@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient, isSupabaseConfigured } from '@/lib/supabase/client'
+import { safeSearchTerm } from '@/lib/search'
 
 export const dynamic = 'force-dynamic'
 
@@ -42,9 +43,13 @@ export async function GET(request: Request) {
 
   if (query) {
     // `or` is the only multi-column text filter PostgREST offers here.
-    requestBuilder = requestBuilder.or(
-      `name.ilike.%${query}%,city.ilike.%${query}%,description.ilike.%${query}%`,
-    )
+    // The term is stripped of the characters the filter grammar reserves.
+    const term = safeSearchTerm(query)
+    if (term) {
+      requestBuilder = requestBuilder.or(
+        `name.ilike.%${term}%,city.ilike.%${term}%,description.ilike.%${term}%`,
+      )
+    }
   }
 
   const { data, error } = await requestBuilder

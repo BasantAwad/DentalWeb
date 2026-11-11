@@ -6,28 +6,31 @@ const FOOTER_GROUPS = [
   {
     title: 'Rent',
     links: [
-      { href: '/services/dental-chair', label: 'Dental chair' },
-      { href: '/services/phantom-head', label: 'Phantom head' },
+      { href: '/services/dental-chair', label: 'Dental chair · 150 EGP/hr' },
+      { href: '/services/phantom-head', label: 'Phantom head · 100 EGP/hr' },
       { href: '/facilities', label: 'Find a facility' },
       { href: '/#how-it-works', label: 'How booking works' },
     ],
   },
   {
-    title: 'Explore',
+    title: 'Learn',
     links: [
-      { href: '/facilities', label: 'Facilities' },
-      { href: '/courses', label: 'Courses' },
+      { href: '/courses', label: 'Courses & practical training' },
       { href: '/services', label: 'All services' },
+      { href: '/facilities', label: 'Facilities' },
       { href: '/about', label: 'About DentalWeb' },
     ],
   },
   {
     title: 'Account',
     links: [
+      { href: '/account', label: 'My dashboard' },
+      { href: '/account/bookings', label: 'My reservations' },
+      { href: '/account/courses', label: 'My courses' },
       { href: '/auth/login', label: 'Sign in' },
       { href: '/auth/register', label: 'Create an account' },
       { href: '/manage', label: 'Facility dashboard' },
-      { href: '/manage/resources', label: 'Manage resources' },
+      { href: '/manage/courses', label: 'Manage courses' },
     ],
   },
 ]
@@ -76,7 +79,9 @@ export default function SiteFooter() {
             </p>
             <p className="mt-4 max-w-sm text-[0.9375rem] leading-relaxed text-porcelain-100/55">
               Reserve dental training equipment by the hour from real facilities
-              across Egypt. Transparent rates, a 50% deposit, and no phone calls.
+              across Egypt — and find courses and supervised practical training
+              offered by the same places. Transparent rates, a 50% deposit, and no
+              phone calls.
             </p>
           </div>
 

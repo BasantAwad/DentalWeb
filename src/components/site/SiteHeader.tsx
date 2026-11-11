@@ -4,13 +4,27 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { useSectionTheme } from './ThemeProvider'
+import { AccountMenu, ServicesMenu } from './AccountMenu'
 
 const NAV_LINKS = [
   { href: '/facilities', label: 'Facilities' },
-  { href: '/services/dental-chair', label: 'Dental chair' },
-  { href: '/services/phantom-head', label: 'Phantom head' },
   { href: '/#how-it-works', label: 'How it works' },
   { href: '/manage', label: 'For facilities' },
+]
+
+/** The three core services, repeated in the mobile menu. */
+const MOBILE_SERVICES = [
+  { href: '/services/dental-chair', name: 'Dental chair rental', price: '150 EGP/hr' },
+  { href: '/services/phantom-head', name: 'Phantom-head training', price: '100 EGP/hr' },
+  { href: '/courses', name: 'Courses and practical training', price: 'Per course' },
+]
+
+const ACCOUNT_LINKS = [
+  { href: '/account', label: 'Dashboard' },
+  { href: '/account/bookings', label: 'Reservations' },
+  { href: '/account/courses', label: 'My courses' },
+  { href: '/account/profile', label: 'Profile' },
+  { href: '/account/settings', label: 'Settings' },
 ]
 
 /**
@@ -115,24 +129,16 @@ export default function SiteHeader() {
                 </Link>
               )
             })}
+            <ServicesMenu dark={dark} />
           </nav>
 
           {/* Actions */}
           <div className="hidden items-center gap-2 lg:flex">
             <Link
-              href="/auth/login"
-              className={[
-                'rounded-lg px-3.5 py-2 text-[0.9375rem] font-medium transition-colors duration-200',
-                dark
-                  ? 'text-porcelain-100/85 hover:text-porcelain-50'
-                  : 'text-graphite-700 hover:text-graphite-900',
-              ].join(' ')}
-            >
-              Sign in
-            </Link>
-            <Link
               href="/facilities"
-              className="group inline-flex h-11 items-center gap-2 rounded-[12px] bg-teal-700 px-5 text-[0.9375rem] font-semibold text-white transition-all duration-200 hover:-translate-y-px hover:bg-teal-600 hover:shadow-lg hover:shadow-teal-900/20"
+              className={[
+                'group inline-flex h-11 items-center gap-2 rounded-[12px] bg-teal-700 px-5 text-[0.9375rem] font-semibold text-white transition-all duration-200 hover:-translate-y-px hover:bg-teal-600 hover:shadow-lg hover:shadow-teal-900/20',
+              ].join(' ')}
             >
               Explore spaces
               <svg
@@ -150,6 +156,7 @@ export default function SiteHeader() {
                 <path d="M5 12h14M12 5l7 7-7 7" />
               </svg>
             </Link>
+            <AccountMenu dark={dark} />
           </div>
 
           {/* Mobile trigger */}
@@ -208,6 +215,75 @@ export default function SiteHeader() {
             </Link>
           ))}
         </nav>
+
+        {/* The three services, grouped so none of them is hidden */}
+        <nav className="mt-8" aria-label="Services">
+          <p
+            className={[
+              'text-[0.6875rem] font-semibold uppercase tracking-[0.16em]',
+              dark ? 'text-porcelain-100/40' : 'text-slate-500',
+            ].join(' ')}
+          >
+            Services
+          </p>
+          <ul className="mt-3">
+            {MOBILE_SERVICES.map((service) => (
+              <li key={service.href}>
+                <Link
+                  href={service.href}
+                  onClick={() => setMenuOpen(false)}
+                  className={[
+                    'flex items-baseline justify-between gap-4 border-b py-3 transition-colors',
+                    dark
+                      ? 'border-white/10 text-porcelain-50/85'
+                      : 'border-stone-300 text-graphite-900',
+                  ].join(' ')}
+                >
+                  <span className="text-[0.9375rem] font-medium">{service.name}</span>
+                  <span
+                    className={[
+                      'tnum shrink-0 text-[0.75rem]',
+                      dark ? 'text-sage-200' : 'text-teal-700',
+                    ].join(' ')}
+                  >
+                    {service.price}
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
+        {/* The account area */}
+        <nav className="mt-8" aria-label="Account">
+          <p
+            className={[
+              'text-[0.6875rem] font-semibold uppercase tracking-[0.16em]',
+              dark ? 'text-porcelain-100/40' : 'text-slate-500',
+            ].join(' ')}
+          >
+            Your account
+          </p>
+          <ul className="mt-3 flex flex-wrap gap-x-5 gap-y-2">
+            {ACCOUNT_LINKS.map((link) => (
+              <li key={link.href}>
+                <Link
+                  href={link.href}
+                  onClick={() => setMenuOpen(false)}
+                  className={[
+                    'inline-flex min-h-11 items-center text-[0.9375rem] font-medium transition-colors',
+                    dark
+                      ? 'text-porcelain-100/75 hover:text-porcelain-50'
+                      : 'text-graphite-700 hover:text-graphite-900',
+                  ].join(' ')}
+                >
+                  {link.label}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+
         <div className="flex flex-col gap-3 pt-8">
           <Link
             href="/facilities"

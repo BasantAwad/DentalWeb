@@ -216,6 +216,135 @@ if (!stationSelection.panelMentionsPH04) roomProblems.push('detail panel did not
 
 report('room plan — 14 stations, hover, select', roomProblems, JSON.stringify(stationSelection))
 
+// ── Services menu ──────────────────────────────────────────────────────────
+// All three core services must be reachable from the header.
+await send('Page.navigate', { url: `${BASE}/` }, sessionId)
+await new Promise((resolve) => setTimeout(resolve, 2500))
+
+const services = await evaluate(`(async () => {
+  const buttons = Array.from(document.querySelectorAll('button'));
+  const trigger = buttons.filter(function (b) {
+    return (b.textContent || '').trim().indexOf('Services') === 0;
+  })[0];
+  if (!trigger) return JSON.stringify({ found: false });
+
+  trigger.click();
+  await new Promise(function (r) { setTimeout(r, 350); });
+
+  const menu = document.querySelector('[role=menu][aria-label=Services]');
+  if (!menu) return JSON.stringify({ found: false, opened: false });
+
+  const items = Array.from(menu.querySelectorAll('a[role=menuitem]')).map(function (a) {
+    return { href: a.getAttribute('href'), text: (a.textContent || '').trim().split('\\n')[0] };
+  });
+
+  return JSON.stringify({ found: true, opened: true, items: items });
+})()`)
+
+const servicesProblems = []
+if (!services.found) servicesProblems.push('no Services trigger in the header')
+if (services.found && !services.opened) servicesProblems.push('the Services menu did not open')
+if (services.opened) {
+  const hrefs = (services.items ?? []).map((item) => item.href)
+  for (const expected of [
+    '/services/dental-chair',
+    '/services/phantom-head',
+    '/courses',
+  ]) {
+    if (!hrefs.includes(expected)) {
+      servicesProblems.push(`the Services menu is missing ${expected}`)
+    }
+  }
+}
+
+report('services menu — three services', servicesProblems, JSON.stringify(services))
+
+// ── Course discovery ──────────────────────────────────────────────────────
+// The filters must be present and must write their state to the URL.
+await send('Page.navigate', { url: `${BASE}/courses` }, sessionId)
+await new Promise((resolve) => setTimeout(resolve, 2500))
+
+const explorer = await evaluate(`(async () => {
+  const search = document.getElementById('course-search');
+  const selects = Array.from(document.querySelectorAll('#course-sort, select[id^=filter-]'));
+  const heading = document.querySelector('h1');
+
+  if (!search) return JSON.stringify({ ok: false, reason: 'no search field' });
+
+  const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, 'value').set;
+  setter.call(search, 'radiography');
+  search.dispatchEvent(new Event('input', { bubbles: true }));
+  await new Promise(function (r) { setTimeout(r, 900); });
+
+  return JSON.stringify({
+    ok: true,
+    hasSearch: true,
+    selectCount: selects.length,
+    heading: heading ? (heading.textContent || '').trim() : '',
+    url: window.location.search,
+  });
+})()`)
+
+const explorerProblems = []
+if (!explorer.ok) explorerProblems.push(explorer.reason ?? 'the explorer did not render')
+if (explorer.ok) {
+  if (!explorer.hasSearch) explorerProblems.push('no search field')
+  if (!explorer.heading.includes('Learn the science')) {
+    explorerProblems.push('the courses page is missing its editorial introduction')
+  }
+  if (!explorer.url.includes('q=radiography')) {
+    explorerProblems.push('the search query was not written to the URL')
+  }
+}
+
+report('course discovery — search and filters', explorerProblems, JSON.stringify(explorer))
+
+// ── Account navigation ─────────────────────────────────────────────────────
+// The account area must offer all five sections and mark the current one.
+await send('Page.navigate', { url: `${BASE}/account/bookings` }, sessionId)
+await new Promise((resolve) => setTimeout(resolve, 2500))
+
+const account = await evaluate(`(() => {
+  const nav = document.querySelector('nav[aria-label="Account sections"]');
+  if (!nav) return JSON.stringify({ ok: false, reason: 'no account navigation' });
+
+  const links = Array.from(nav.querySelectorAll('a')).map(function (a) {
+    return { href: a.getAttribute('href'), current: a.getAttribute('aria-current') };
+  });
+
+  return JSON.stringify({
+    ok: true,
+    links: links,
+    signedOutPrompt: document.body.innerText.indexOf('Sign in') >= 0,
+  });
+})()`)
+
+const accountProblems = []
+if (!account.ok) accountProblems.push(account.reason ?? 'the account area did not render')
+if (account.ok) {
+  const hrefs = (account.links ?? []).map((link) => link.href)
+  for (const expected of [
+    '/account',
+    '/account/profile',
+    '/account/bookings',
+    '/account/courses',
+    '/account/settings',
+  ]) {
+    if (!hrefs.includes(expected)) {
+      accountProblems.push(`the account navigation is missing ${expected}`)
+    }
+  }
+  const current = (account.links ?? []).filter((link) => link.current === 'page')
+  if (current.length !== 1) {
+    accountProblems.push(`expected one current page, found ${current.length}`)
+  }
+  if (!account.signedOutPrompt) {
+    accountProblems.push('a signed-out visitor is not asked to sign in')
+  }
+}
+
+report('account navigation — five sections', accountProblems, JSON.stringify(account))
+
 console.log(`\n${failures === 0 ? 'PASS' : failures + ' issue(s) found'}`)
 
 socket.close()
