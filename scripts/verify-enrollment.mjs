@@ -22,6 +22,10 @@ const slugMigration = fs.readFileSync(
   path.join(root, 'supabase', 'migrations', '0002_course_slug_rules.sql'),
   'utf8',
 )
+const slugRepair = fs.readFileSync(
+  path.join(root, 'supabase', 'migrations', '0003_course_slug_lowercase.sql'),
+  'utf8',
+)
 
 const db = await new PGlite()
 
@@ -43,6 +47,7 @@ await db.exec(`
 await db.exec(schema.replace(/CREATE EXTENSION[^;]+;/g, ''))
 await db.exec(migration)
 await db.exec(slugMigration)
+await db.exec(slugRepair)
 
 let failures = 0
 function check(label, condition, detail) {
@@ -133,6 +138,33 @@ const clashRows = await db.query(
   `SELECT slug, COUNT(*)::int AS n FROM courses GROUP BY slug HAVING COUNT(*) > 1`,
 )
 check('no course slug is duplicated', clashRows.rows.length === 0, clashRows.rows)
+
+// The database trigger must derive slugs the same way the application does:
+// lowercase first, then strip what the slug alphabet does not allow. A title
+// with capitals and punctuation is the exact case the repair migration fixes.
+const seeded = await db.query(
+  `SELECT slug FROM courses WHERE title = 'Sterilization & Infection Control Intensive' ORDER BY created_at LIMIT 1`,
+)
+check(
+  'the database derives the slug from the title the same way the app does',
+  seeded.rows[0]?.slug === 'sterilization-infection-control-intensive',
+  seeded.rows[0],
+)
+
+// A second course with the same title keeps the base and gets a suffix.
+const slugId = '33333333-3333-3333-3333-333333333333'
+await db.query(
+  `INSERT INTO courses (id, clinic_id, title, start_dt, end_dt, capacity, price_egp, status)
+   VALUES ($1, $2, $3, NOW() + INTERVAL '30 days', NOW() + INTERVAL '31 days', 5, 500, 'upcoming')`,
+  [slugId, CLINIC, 'Sterilization & Infection Control Intensive'],
+)
+const generated = await db.query(`SELECT slug FROM courses WHERE id = $1`, [slugId])
+check(
+  'a duplicate title gets the base slug plus a unique suffix',
+  generated.rows[0]?.slug === 'sterilization-infection-control-intensive-2',
+  generated.rows[0],
+)
+await db.query(`DELETE FROM courses WHERE id = $1`, [slugId])
 
 // ── 1. A student can register ──────────────────────────────────────────────
 const first = await tryEnroll(U.one, U.one)

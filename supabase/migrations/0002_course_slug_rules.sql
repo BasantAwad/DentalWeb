@@ -16,7 +16,7 @@ BEGIN
   FOR r IN
     SELECT id, title FROM courses WHERE slug IS NULL OR slug = ''
   LOOP
-    base_slug := lower(regexp_replace(coalesce(r.title, ''), '[^a-z0-9]+', '-', 'g'));
+    base_slug := regexp_replace(lower(coalesce(r.title, '')), '[^a-z0-9]+', '-', 'g');
     base_slug := trim(BOTH '-' FROM base_slug);
     IF base_slug = '' THEN
       base_slug := 'course';
@@ -48,7 +48,7 @@ DECLARE
   n int;
 BEGIN
   IF NEW.slug IS NULL OR NEW.slug = '' THEN
-    base_slug := lower(regexp_replace(coalesce(NEW.title, ''), '[^a-z0-9]+', '-', 'g'));
+    base_slug := regexp_replace(lower(coalesce(NEW.title, '')), '[^a-z0-9]+', '-', 'g');
     base_slug := trim(BOTH '-' FROM base_slug);
     IF base_slug = '' THEN
       base_slug := 'course';
@@ -81,7 +81,7 @@ DECLARE
   n int;
 BEGIN
   IF NEW.title IS DISTINCT FROM OLD.title THEN
-    base_slug := lower(regexp_replace(coalesce(NEW.title, ''), '[^a-z0-9]+', '-', 'g'));
+    base_slug := regexp_replace(lower(coalesce(NEW.title, '')), '[^a-z0-9]+', '-', 'g');
     base_slug := trim(BOTH '-' FROM base_slug);
     IF base_slug = '' THEN
       base_slug := 'course';
