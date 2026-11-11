@@ -94,8 +94,8 @@ export default function ToothPlanner() {
                 </div>
 
                 <div className="mt-5">
-                  <ButtonLink href="/facilities" variant="primary" size="lg" withArrow className="w-full">
-                    Find a facility
+                  <ButtonLink href="/services" variant="primary" size="lg" withArrow className="w-full">
+                    Explore services
                   </ButtonLink>
                   <p className="mt-3 text-center text-[0.75rem] leading-relaxed text-slate-600">
                     Tooth selection is optional and is never required to book.

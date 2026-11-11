@@ -274,7 +274,7 @@ export default function FacilityExplorer() {
                               <h2 className="font-display text-[1.375rem] font-semibold leading-tight tracking-[-0.02em]">
                                 <Link
                                   href={`/facilities/${facility.slug}`}
-                                  className="transition-colors after:absolute after:inset-0 hover:text-teal-700"
+                                  className="inline-flex min-h-11 items-center transition-colors after:absolute after:inset-0 hover:text-teal-700"
                                 >
                                   {facility.name}
                                 </Link>
@@ -326,15 +326,15 @@ export default function FacilityExplorer() {
                           ) : null}
                           <Link
                             href={`/facilities/${facility.slug}`}
-                            className="text-[0.9375rem] font-semibold text-teal-700 underline decoration-teal-600/30 underline-offset-[6px] transition-colors hover:text-teal-600"
+                            className="inline-flex min-h-11 items-center text-[0.9375rem] font-semibold text-teal-700 underline decoration-teal-600/30 underline-offset-[6px] transition-colors hover:text-teal-600"
                           >
                             View facility
                           </Link>
                           <Link
-                            href={`/facilities/${facility.slug}/book`}
-                            className="text-[0.9375rem] font-medium text-graphite-900 underline decoration-stone-300 underline-offset-[6px] transition-colors hover:decoration-teal-600"
+                            href={`/facilities/${facility.slug}/book${service ? `?service=${service}` : ''}`}
+                            className="inline-flex min-h-11 items-center text-[0.9375rem] font-medium text-graphite-900 underline decoration-stone-300 underline-offset-[6px] transition-colors hover:decoration-teal-600"
                           >
-                            Check availability
+                            {service ? 'Reserve this service' : 'Check availability'}
                           </Link>
                         </div>
                       </article>

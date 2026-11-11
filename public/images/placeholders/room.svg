@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" width="1200" height="900" role="img" aria-label="Placeholder schematic of a training room layout">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0.35" y2="1">
+      <stop offset="0%" stop-color="#F8F7F3"/>
+      <stop offset="62%" stop-color="#F2F0E9"/>
+      <stop offset="100%" stop-color="#E7EEE8"/>
+    </linearGradient>
+    <linearGradient id="floor" x1="0.1" y1="0" x2="0.9" y2="1">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#E2DCD1" stop-opacity="0.85"/>
+    </linearGradient>
+    <filter id="soft" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="20"/>
+    </filter>
+  </defs>
+
+  <rect width="1200" height="900" fill="url(#bg)"/>
+
+  <!-- The room, seen from above: an abstract plan, not real geometry -->
+  <ellipse cx="600" cy="640" rx="420" ry="46" fill="#8C958F" opacity="0.18" filter="url(#soft)"/>
+  <g transform="translate(600 430)">
+    <!-- floor slab -->
+    <rect x="-380" y="-260" width="760" height="520" rx="26" fill="url(#floor)" stroke="#CFC8BB" stroke-width="3"/>
+    <!-- door opening -->
+    <rect x="330" y="-40" width="52" height="80" rx="10" fill="#F2F0E9" stroke="#CFC8BB" stroke-width="3"/>
+    <!-- bench runs -->
+    <rect x="-330" y="-200" width="660" height="34" rx="10" fill="#D8D1C5" opacity="0.7"/>
+    <rect x="-330" y="166" width="660" height="34" rx="10" fill="#D8D1C5" opacity="0.7"/>
+
+    <!-- station marks: schematic, evenly pitched, not a real plan -->
+    <g>
+      <!-- top row -->
+      <g transform="translate(-240 -112)"><circle r="26" fill="#2F7772" opacity="0.88"/><circle r="9" fill="#F8F7F3" opacity="0.9"/></g>
+      <g transform="translate(-80 -112)"><circle r="26" fill="#2F7772" opacity="0.88"/><circle r="9" fill="#F8F7F3" opacity="0.9"/></g>
+      <g transform="translate(80 -112)"><circle r="26" fill="#2F7772" opacity="0.88"/><circle r="9" fill="#F8F7F3" opacity="0.9"/></g>
+      <g transform="translate(240 -112)"><circle r="26" fill="#C87963" opacity="0.85"/><circle r="9" fill="#F8F7F3" opacity="0.9"/></g>
+      <!-- middle row -->
+      <g transform="translate(-240 40)"><circle r="26" fill="#2F7772" opacity="0.88"/><circle r="9" fill="#F8F7F3" opacity="0.9"/></g>
+      <g transform="translate(-80 40)"><circle r="26" fill="#929A94" opacity="0.8"/><circle r="9" fill="#F8F7F3" opacity="0.9"/></g>
+      <g transform="translate(80 40)"><circle r="26" fill="#2F7772" opacity="0.88"/><circle r="9" fill="#F8F7F3" opacity="0.9"/></g>
+      <g transform="translate(240 40)"><circle r="26" fill="#2F7772" opacity="0.88"/><circle r="9" fill="#F8F7F3" opacity="0.9"/></g>
+      <!-- bottom row -->
+      <g transform="translate(-240 192)"><circle r="26" fill="#2F7772" opacity="0.88"/><circle r="9" fill="#F8F7F3" opacity="0.9"/></g>
+      <g transform="translate(-80 192)"><circle r="26" fill="#2F7772" opacity="0.88"/><circle r="9" fill="#F8F7F3" opacity="0.9"/></g>
+      <g transform="translate(80 192)"><circle r="26" fill="#2F7772" opacity="0.88"/><circle r="9" fill="#F8F7F3" opacity="0.9"/></g>
+      <g transform="translate(240 192)"><circle r="26" fill="#929A94" opacity="0.8"/><circle r="9" fill="#F8F7F3" opacity="0.9"/></g>
+    </g>
+  </g>
+
+  <text x="600" y="822" text-anchor="middle" font-family="Manrope, Inter, sans-serif" font-size="21" letter-spacing="4" fill="#68716C">PLACEHOLDER PLAN — NOT THE FINAL LAYOUT</text>
+</svg>

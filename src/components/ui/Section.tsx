@@ -18,6 +18,7 @@ export default function Section({
   className = '',
   children,
   bleed = 'none',
+  seam = 'none',
   ...rest
 }: {
   theme?: SectionTheme
@@ -30,8 +31,26 @@ export default function Section({
    * 'lift'  — the section overlaps the previous one with a soft shadow
    */
   bleed?: 'none' | 'soft' | 'lift'
+  /**
+   * An organic seam that softens the boundary with the section above.
+   *
+   * The value is the *previous* section's background colour: the seam paints a
+   * curved tongue of that colour dipping into this section's top edge, so two
+   * different backgrounds meet along a curve instead of a straight cut. The
+   * page reads as one continuous surface rather than stacked rectangles.
+   */
+  seam?: 'none' | 'porcelain' | 'chalk' | 'graphite'
 } & React.HTMLAttributes<HTMLElement>) {
   const tone = theme === 'dark' || theme === 'graphite' ? 'dark' : 'light'
+
+  const seamColor =
+    seam === 'porcelain'
+      ? 'text-[#f2f0e9]'
+      : seam === 'chalk'
+        ? 'text-white'
+        : seam === 'graphite'
+          ? 'text-graphite-900'
+          : ''
 
   return (
     <section
@@ -51,6 +70,24 @@ export default function Section({
       ].join(' ')}
       {...rest}
     >
+      {seam !== 'none' ? (
+        <span
+          aria-hidden="true"
+          className={[
+            'pointer-events-none absolute inset-x-0 top-0 block h-12 md:h-20',
+            seamColor,
+          ].join(' ')}
+        >
+          <svg
+            viewBox="0 0 1440 64"
+            preserveAspectRatio="none"
+            className="block h-full w-full"
+            fill="currentColor"
+          >
+            <path d="M0 0h1440v16c-270 46-530 50-800 28C420 26 180 22 0 46Z" />
+          </svg>
+        </span>
+      ) : null}
       {children}
     </section>
   )

@@ -13,7 +13,6 @@ export default function PhantomHeadServicePage() {
   return (
     <ServicePage
       serviceKey="phantom-head"
-      supportsStationSelection
       included={[
         {
           title: 'Manned training unit',

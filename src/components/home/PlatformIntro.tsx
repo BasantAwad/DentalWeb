@@ -65,10 +65,10 @@ export default function PlatformIntro() {
             </p>
             <div className="mt-8">
               <Link
-                href="/facilities"
+                href="/services"
                 className="group inline-flex min-h-11 items-center gap-2 text-[0.9375rem] font-semibold text-teal-700 transition-colors hover:text-teal-600"
               >
-                Browse facilities
+                Explore the services
                 <svg
                   width="15"
                   height="15"

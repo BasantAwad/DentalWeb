@@ -49,6 +49,9 @@ export async function GET(
   }
 
   // The room plan's stations map to the facility's phantom-head resources.
+  // The static mapping is always reported so downstream steps (for example the
+  // booking flow) know which backend resource a chosen station refers to, even
+  // before a date and time are picked.
   const { data: resources } = await supabase
     .from('resources')
     .select('id, name, type, location, is_active')
@@ -66,6 +69,16 @@ export async function GET(
     string,
     { resourceId: string; status: string; label: string; reason?: string }
   > = {}
+
+  for (const station of BLUEPRINT_STATIONS) {
+    const resource = phantomHeads[station.index - 1]
+    if (!resource) continue
+    stationStates[station.id] = {
+      resourceId: resource.id,
+      status: 'available',
+      label: resource.name,
+    }
+  }
 
   // Without a date and time we can report only the static state.
   const window = date && startHour
@@ -100,39 +113,27 @@ export async function GET(
       .lt('start_dt', window.end.toISOString())
       .gt('end_dt', window.start.toISOString())
 
+    // Overlay live conflicts on top of the static map — never replace it,
+    // so the station→resource identity survives every response.
     for (const station of BLUEPRINT_STATIONS) {
-      const resource = phantomHeads[station.index - 1]
-      if (!resource) continue
+      const state = stationStates[station.id]
+      if (!state) continue
 
-      const booking = (bookings ?? []).find((b) => b.resource_id === resource.id)
-      const hold = (holds ?? []).find((h) => h.resource_id === resource.id)
+      const booking = (bookings ?? []).find((b) => b.resource_id === state.resourceId)
+      const hold = (holds ?? []).find((h) => h.resource_id === state.resourceId)
       const block = (blocks ?? []).find(
-        (b) => b.resource_id === resource.id || b.resource_id === null,
+        (b) => b.resource_id === state.resourceId || b.resource_id === null,
       )
 
       if (block) {
-        stationStates[station.id] = {
-          resourceId: resource.id,
-          status: 'maintenance',
-          label: resource.name,
-          reason:
-            block.reason === 'maintenance'
-              ? 'This station is under maintenance.'
-              : 'This station is closed for the selected time.',
-        }
+        state.status = 'maintenance'
+        state.reason =
+          block.reason === 'maintenance'
+            ? 'This station is under maintenance.'
+            : 'This station is closed for the selected time.'
       } else if (booking || hold) {
-        stationStates[station.id] = {
-          resourceId: resource.id,
-          status: 'reserved',
-          label: resource.name,
-          reason: 'Reserved for the selected time.',
-        }
-      } else {
-        stationStates[station.id] = {
-          resourceId: resource.id,
-          status: 'available',
-          label: resource.name,
-        }
+        state.status = 'reserved'
+        state.reason = 'Reserved for the selected time.'
       }
     }
   }

@@ -6,9 +6,9 @@ const FOOTER_GROUPS = [
   {
     title: 'Rent',
     links: [
+      { href: '/services', label: 'All services' },
       { href: '/services/dental-chair', label: 'Dental chair · 150 EGP/hr' },
       { href: '/services/phantom-head', label: 'Phantom head · 100 EGP/hr' },
-      { href: '/facilities', label: 'Find a facility' },
       { href: '/#how-it-works', label: 'How booking works' },
     ],
   },
@@ -16,7 +16,6 @@ const FOOTER_GROUPS = [
     title: 'Learn',
     links: [
       { href: '/courses', label: 'Courses & practical training' },
-      { href: '/services', label: 'All services' },
       { href: '/facilities', label: 'Facilities' },
       { href: '/about', label: 'About DentalWeb' },
     ],

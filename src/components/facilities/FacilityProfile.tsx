@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import { useSearchParams } from 'next/navigation'
 import {
   getFacility,
   listCourses,
@@ -35,6 +36,7 @@ type Status = 'loading' | 'ready' | 'not-found' | 'unavailable' | 'error'
  * platform has no such process yet.
  */
 export default function FacilityProfile({ slug }: { slug: string }) {
+  const searchParams = useSearchParams()
   const [facility, setFacility] = useState<FacilityDetail | null>(null)
   const [courses, setCourses] = useState<CourseSummary[]>([])
   const [status, setStatus] = useState<Status>('loading')
@@ -125,6 +127,14 @@ export default function FacilityProfile({ slug }: { slug: string }) {
     .filter((s) => s.priceEgp > 0)
     .sort((a, b) => a.priceEgp - b.priceEgp)[0]
   const activeResources = facility.resources.filter((r) => r.isActive)
+
+  // A service chosen in the explorer travels to the booking flow unchanged.
+  const requestedService = searchParams.get('service')
+  const bookHref = `/facilities/${facility.slug}/book${
+    requestedService === 'chair' || requestedService === 'dummy_head'
+      ? `?service=${requestedService}`
+      : ''
+  }`
 
   return (
     <>
@@ -526,7 +536,7 @@ export default function FacilityProfile({ slug }: { slug: string }) {
 
                   <div className="mt-6">
                     <ButtonLink
-                      href={`/facilities/${facility.slug}/book`}
+                      href={bookHref}
                       variant="primary"
                       size="lg"
                       withArrow

@@ -32,7 +32,7 @@ const CAPABILITIES = [
  */
 export default function FacilityOwner() {
   return (
-    <Section id="for-facilities" theme="dark" className="relative overflow-hidden">
+    <Section id="for-facilities" theme="dark" seam="chalk" className="relative overflow-hidden">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0"

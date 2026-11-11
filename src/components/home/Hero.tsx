@@ -89,16 +89,17 @@ export default function Hero() {
             />
 
             <p className="mt-6 max-w-md text-[1.0625rem] leading-relaxed text-porcelain-100/75 md:text-[1.125rem]">
-              Discover and reserve dental training equipment by the hour. Real
-              facilities, transparent hourly rates, and a 50% deposit to confirm.
+              Reserve dental training equipment by the hour, or learn through
+              courses and supervised practice — real facilities, transparent
+              rates, a 50% deposit to confirm.
             </p>
 
             <div className="mt-8 flex flex-wrap items-center gap-3 md:mt-9">
-              <ButtonLink href="/facilities" variant="on-dark" size="lg" withArrow>
-                Explore spaces
+              <ButtonLink href="/services" variant="on-dark" size="lg" withArrow>
+                Explore services
               </ButtonLink>
-              <ButtonLink href="/#how-it-works" variant="tertiary-on-dark" size="lg">
-                See how it works
+              <ButtonLink href="/courses" variant="tertiary-on-dark" size="lg">
+                Browse courses
               </ButtonLink>
             </div>
           </div>

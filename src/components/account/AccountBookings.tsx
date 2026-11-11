@@ -80,8 +80,8 @@ export default function AccountBookings() {
             <ButtonLink href="/auth/login" variant="primary">
               Sign in
             </ButtonLink>
-            <ButtonLink href="/facilities" variant="secondary">
-              Explore facilities
+            <ButtonLink href="/services" variant="secondary">
+              Explore services
             </ButtonLink>
           </div>
         </div>
@@ -151,8 +151,8 @@ export default function AccountBookings() {
           </p>
           {bookings.length === 0 ? (
             <div className="mt-7 flex flex-wrap justify-center gap-3">
-              <ButtonLink href="/facilities" variant="primary">
-                Explore facilities
+              <ButtonLink href="/services" variant="primary">
+                Explore services
               </ButtonLink>
               <ButtonLink href="/services/phantom-head" variant="secondary">
                 Phantom-head training

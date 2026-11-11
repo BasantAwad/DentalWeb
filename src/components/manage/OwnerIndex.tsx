@@ -128,7 +128,7 @@ export default function OwnerIndex() {
                         </span>
                         <Link
                           href={`/manage/${facility.slug}`}
-                          className="text-[0.9375rem] font-semibold text-teal-700 underline decoration-teal-600/30 underline-offset-[6px] transition-colors hover:text-teal-600"
+                          className="inline-flex min-h-11 items-center text-[0.9375rem] font-semibold text-teal-700 underline decoration-teal-600/30 underline-offset-[6px] transition-colors hover:text-teal-600"
                         >
                           Manage
                         </Link>

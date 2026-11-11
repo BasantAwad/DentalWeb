@@ -189,10 +189,10 @@ function CheckoutSuccessContent() {
 
         <div className="mt-7 flex flex-col sm:flex-row gap-3 justify-center">
           <Link
-            href="/facilities"
+            href="/services"
             className="inline-flex h-11 items-center justify-center rounded-[12px] bg-teal-700 px-5 text-sm font-semibold text-white transition-colors hover:bg-teal-600"
           >
-            Explore facilities
+            Explore services
           </Link>
           <Link
             href="/auth/login"

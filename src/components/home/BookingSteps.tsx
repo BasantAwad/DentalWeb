@@ -75,13 +75,15 @@ export default function BookingSteps() {
     <Section
       id="how-it-works"
       theme="porcelain"
+      seam="graphite"
       className="relative overflow-hidden"
     >
       <div className="page section-y">
         <div className="grid-12 gap-y-12">
           {/* Heading */}
           <div className="col-span-12 lg:col-span-4">
-            <Eyebrow>How booking works</Eyebrow>            <h2 className="mt-6 font-display text-[clamp(2rem,4.4vw,3.25rem)] font-semibold leading-[1.05] tracking-[-0.03em]">
+            <Eyebrow>How booking works</Eyebrow>
+            <h2 className="mt-6 font-display text-[clamp(2rem,4.4vw,3.25rem)] font-semibold leading-[1.05] tracking-[-0.03em]">
               Booking without the back-and-forth.
             </h2>
             <p className="mt-6 max-w-sm text-[1.0625rem] leading-relaxed text-graphite-700">

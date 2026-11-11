@@ -17,13 +17,22 @@ import Breadcrumb from '@/components/ui/Breadcrumb'
 /**
  * The booking experience.
  *
- * A focused flow rather than a section: facility → service → date → time →
- * duration → review → deposit. Availability comes from the backend for the
- * chosen resource and date, and the price is quoted by the backend, never
- * calculated in the browser.
+ * A focused flow rather than a section: service → date → time → duration →
+ * review → deposit, inside a facility that was already chosen. When the visitor
+ * arrived from a service page, that service arrives preselected via
+ * `initialService` so the journey they started is the journey they continue.
+ * Availability comes from the backend for the chosen resource and date, and the
+ * price is quoted by the backend, never calculated in the browser.
  */
 
 type Step = 'service' | 'schedule' | 'review'
+
+/**
+ * A service the visitor may have already chosen, expressed as the resource
+ * type that provides it. Mirrors the `?service=` filter of the facility
+ * explorer, so a link can carry the choice from list to booking untouched.
+ */
+export type PreselectedService = 'chair' | 'dummy_head'
 
 interface Draft {
   serviceId: string | null
@@ -59,7 +68,17 @@ function todayIso(): string {
   return new Date().toISOString().slice(0, 10)
 }
 
-export default function BookingFlow({ slug }: { slug: string }) {
+export default function BookingFlow({
+  slug,
+  initialService = null,
+  initialResourceId = null,
+}: {
+  slug: string
+  /** A service chosen before arrival, e.g. from a service page or the explorer. */
+  initialService?: PreselectedService | null
+  /** A resource chosen before arrival, e.g. a station picked on the room plan. */
+  initialResourceId?: string | null
+}) {
   const [facility, setFacility] = useState<FacilityDetail | null>(null)
   const [facilityStatus, setFacilityStatus] = useState<'loading' | 'ready' | 'error'>('loading')
   const [message, setMessage] = useState('')
@@ -93,10 +112,40 @@ export default function BookingFlow({ slug }: { slug: string }) {
         }
         setFacility(payload.facility)
         setFacilityStatus('ready')
-        // Preselect the first bookable service.
-        const first = payload.facility.services.find((s) => s.isBookable !== false)
+        // Preselect the service the visitor came for; otherwise the first
+        // bookable service. The choice is never invented — if the facility
+        // does not offer the requested resource type, the list decides.
+        const bookable = payload.facility.services.filter((s) => s.isBookable !== false)
+        const wantedType =
+          initialService === 'chair'
+            ? 'chair'
+            : initialService === 'dummy_head'
+              ? 'dummy_head'
+              : null
+        const preferred = wantedType
+          ? bookable.find((s) => s.resourceType === wantedType)
+          : undefined
+        const first = preferred ?? bookable[0]
+        // A station picked on the room plan arrives as its backend resource
+        // id. It is accepted only when the facility still owns it, it is
+        // active, and it matches the service's resource type — otherwise the
+        // flow starts with no resource and the visitor chooses one.
+        const wantedResource =
+          initialResourceId && first
+            ? payload.facility.resources.find(
+                (r) =>
+                  r.id === initialResourceId &&
+                  r.isActive &&
+                  (first.resourceType === null ||
+                    r.type === first.resourceType),
+              )
+            : undefined
         if (first) {
-          setDraft((current) => ({ ...current, serviceId: first.id }))
+          setDraft((current) => ({
+            ...current,
+            serviceId: first.id,
+            resourceId: wantedResource ? wantedResource.id : current.resourceId,
+          }))
         }
       } catch (error) {
         if (cancelled) return
@@ -108,7 +157,7 @@ export default function BookingFlow({ slug }: { slug: string }) {
     return () => {
       cancelled = true
     }
-  }, [slug])
+  }, [slug, initialService, initialResourceId])
 
   // ── Availability ─────────────────────────────────────────────────
   const loadAvailability = useCallback(async () => {
@@ -233,8 +282,8 @@ export default function BookingFlow({ slug }: { slug: string }) {
               {message || 'The facility could not be loaded.'}
             </p>
             <div className="mt-7">
-              <ButtonLink href="/facilities" variant="primary">
-                Browse facilities
+              <ButtonLink href="/services" variant="primary">
+                Back to services
               </ButtonLink>
             </div>
           </div>

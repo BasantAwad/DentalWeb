@@ -132,8 +132,12 @@ export default function RoomReveal({
                     Open the full room plan
                   </ButtonLink>
                 ) : (
-                  <ButtonLink href="/facilities" variant="on-dark" withArrow>
-                    Find a facility
+                  <ButtonLink
+                    href="/facilities?service=dummy_head"
+                    variant="on-dark"
+                    withArrow
+                  >
+                    Find a training room
                   </ButtonLink>
                 )}
               </div>

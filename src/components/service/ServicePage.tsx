@@ -29,8 +29,6 @@ interface ServicePageProps {
   included: { title: string; body: string }[]
   /** Extra notes specific to this service. */
   notes: string[]
-  /** True when the service supports choosing a station in the room plan. */
-  supportsStationSelection?: boolean
 }
 
 function ServiceStage({ serviceKey }: { serviceKey: RentalServiceKey }) {
@@ -65,10 +63,12 @@ export default function ServicePage({
   serviceKey,
   included,
   notes,
-  supportsStationSelection = false,
 }: ServicePageProps) {
   const service = RENTAL_SERVICES[serviceKey]
   const dark = serviceKey === 'dental-chair'
+  // The resource type that provides this service — the vocabulary the facility
+  // explorer's `?service=` filter and the booking flow both understand.
+  const serviceResourceType = serviceKey === 'dental-chair' ? 'chair' : 'dummy_head'
 
   return (
     <>
@@ -127,22 +127,20 @@ export default function ServicePage({
 
               <div className="mt-9 flex flex-wrap items-center gap-3">
                 <ButtonLink
-                  href="/facilities"
+                  href={`/facilities?service=${serviceResourceType}`}
                   variant={dark ? 'on-dark' : 'primary'}
                   size="lg"
                   withArrow
                 >
-                  Check availability
+                  See facilities offering this
                 </ButtonLink>
-                {supportsStationSelection ? (
-                  <ButtonLink
-                    href="/facilities?service=phantom-head"
-                    variant={dark ? 'tertiary-on-dark' : 'tertiary'}
-                    size="lg"
-                  >
-                    Choose a station
-                  </ButtonLink>
-                ) : null}
+                <ButtonLink
+                  href="/#how-it-works"
+                  variant={dark ? 'tertiary-on-dark' : 'tertiary'}
+                  size="lg"
+                >
+                  How booking works
+                </ButtonLink>
               </div>
 
               <dl
@@ -262,21 +260,28 @@ export default function ServicePage({
       ) : null}
 
       {/* ── Closing action ────────────────────────────────────────── */}
-      <Section theme="dark" className="relative overflow-hidden">
+      <Section theme="dark" seam="chalk" className="relative overflow-hidden">
         <div className="page py-24 md:py-32">
           <div className="grid-12 items-end gap-y-10">
             <div className="col-span-12 lg:col-span-7">
               <Eyebrow tone="dark">Ready when you are</Eyebrow>
               <h2 className="mt-6 font-display text-[clamp(2rem,4.4vw,3.5rem)] font-semibold leading-[1.04] tracking-[-0.03em]">
-                Find a facility that offers {service.name.toLowerCase()}.
+                Facilities offering {service.name.toLowerCase()},
+                <br />
+                one booking away.
               </h2>
               <div className="mt-8">
                 <Rule tone="dark" fade="right" className="max-w-sm" />
               </div>
             </div>
             <div className="col-span-12 flex flex-wrap gap-3 lg:col-span-4 lg:col-start-9 lg:justify-end">
-              <ButtonLink href="/facilities" variant="on-dark" size="lg" withArrow>
-                Explore facilities
+              <ButtonLink
+                href={`/facilities?service=${serviceResourceType}`}
+                variant="on-dark"
+                size="lg"
+                withArrow
+              >
+                Find your facility
               </ButtonLink>
               <Link
                 href="/#how-it-works"

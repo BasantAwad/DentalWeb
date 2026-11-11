@@ -199,7 +199,7 @@ export default function CourseExplorer() {
                 who do the work.
               </p>
               <div className="mt-7">
-                <ButtonLink href="/services/phantom-head" variant="on-dark" withArrow>
+                <ButtonLink href="/services" variant="on-dark" withArrow>
                   Need equipment instead?
                 </ButtonLink>
               </div>
@@ -209,7 +209,7 @@ export default function CourseExplorer() {
       </Section>
 
       {/* ── Filters ─────────────────────────────────────────────────── */}
-      <Section theme="porcelain" className="relative overflow-hidden">
+      <Section theme="porcelain" seam="graphite" className="relative overflow-hidden">
         <div className="page py-10 md:py-12">
           <div className="grid-12 gap-y-5">
             {/* Search */}
@@ -398,8 +398,8 @@ export default function CourseExplorer() {
                   'Courses need a configured database. Set NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY.'}
               </p>
               <div className="mt-7">
-                <ButtonLink href="/facilities" variant="secondary">
-                  Browse facilities instead
+                <ButtonLink href="/services" variant="secondary">
+                  Browse the rental services instead
                 </ButtonLink>
               </div>
             </div>
@@ -425,8 +425,8 @@ export default function CourseExplorer() {
                 </button>
               ) : (
                 <div className="mt-7 flex flex-wrap justify-center gap-3">
-                  <ButtonLink href="/facilities" variant="primary" size="md">
-                    Explore facilities
+                  <ButtonLink href="/services" variant="primary" size="md">
+                    Explore services
                   </ButtonLink>
                   <ButtonLink href="/services/phantom-head" variant="secondary" size="md">
                     Phantom-head training
@@ -516,11 +516,14 @@ function FeaturedCourse({ course }: { course: CourseSummary }) {
           </span>
         </div>
 
-        <h3 className="mt-4 font-display text-[clamp(1.625rem,3.2vw,2.5rem)] font-semibold leading-[1.1] tracking-[-0.03em]">
-          <Link href={`/courses/${course.slug}`} className="transition-colors hover:text-teal-700">
+        <h2 className="mt-4 font-display text-[clamp(1.625rem,3.2vw,2.5rem)] font-semibold leading-[1.1] tracking-[-0.03em]">
+          <Link
+            href={`/courses/${course.slug}`}
+            className="inline-flex min-h-11 items-center transition-colors hover:text-teal-700"
+          >
             {course.title}
           </Link>
-        </h3>
+        </h2>
 
         {course.description ? (
           <p className="mt-4 max-w-xl text-[0.9375rem] leading-relaxed text-graphite-700">
@@ -592,7 +595,10 @@ function CourseRow({ course }: { course: CourseSummary }) {
         </div>
 
         <h3 className="mt-2 font-display text-[1.25rem] font-semibold leading-snug tracking-[-0.02em]">
-          <Link href={`/courses/${course.slug}`} className="transition-colors hover:text-teal-700">
+          <Link
+            href={`/courses/${course.slug}`}
+            className="inline-flex min-h-11 items-center transition-colors hover:text-teal-700"
+          >
             {course.title}
           </Link>
         </h3>
@@ -624,7 +630,7 @@ function CourseRow({ course }: { course: CourseSummary }) {
         </span>
         <Link
           href={`/courses/${course.slug}`}
-          className="text-[0.875rem] font-semibold text-graphite-900 underline decoration-stone-300 underline-offset-[6px] transition-colors hover:decoration-teal-600"
+          className="inline-flex min-h-11 items-center text-[0.875rem] font-semibold text-graphite-900 underline decoration-stone-300 underline-offset-[6px] transition-colors hover:decoration-teal-600"
         >
           View course
         </Link>

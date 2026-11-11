@@ -177,8 +177,8 @@ export default function AccountDashboard() {
               phantom-head station.
             </p>
             <div className="mt-6 flex flex-wrap justify-center gap-3">
-              <ButtonLink href="/facilities" variant="primary" size="md">
-                Explore facilities
+              <ButtonLink href="/services" variant="primary" size="md">
+                Explore services
               </ButtonLink>
               <ButtonLink href="/courses" variant="secondary" size="md">
                 Explore courses
@@ -276,7 +276,7 @@ export default function AccountDashboard() {
         </h2>
         <div className="mt-5 grid gap-x-8 gap-y-4 sm:grid-cols-2">
           {[
-            { href: '/facilities', label: 'Explore facilities', detail: 'Find a place to practice' },
+            { href: '/services', label: 'Explore services', detail: 'Chair rental, phantom-head training and courses' },
             { href: '/services/dental-chair', label: 'Book a dental chair', detail: '150 EGP per hour' },
             { href: '/services/phantom-head', label: 'Find phantom-head training', detail: '100 EGP per hour' },
             { href: '/courses', label: 'Explore courses', detail: 'Practical training programmes' },

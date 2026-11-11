@@ -62,7 +62,7 @@ export default function CoursesShowcase() {
   }, [])
 
   return (
-    <Section id="courses" theme="dark" className="relative overflow-hidden">
+    <Section id="courses" theme="dark" seam="porcelain" className="relative overflow-hidden">
       {/* A soft mineral wash so the dark section is not flat. */}
       <div
         aria-hidden="true"
@@ -94,10 +94,10 @@ export default function CoursesShowcase() {
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-5">
               <ButtonLink href="/courses" variant="on-dark" size="lg" withArrow>
-                Explore Courses
+                Explore courses
               </ButtonLink>
-              <ButtonLink href="/facilities" variant="tertiary-on-dark">
-                Or find a place to practise
+              <ButtonLink href="/facilities?service=chair" variant="tertiary-on-dark">
+                Or book a chair to practise
               </ButtonLink>
             </div>
           </div>

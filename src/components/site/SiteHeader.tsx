@@ -7,6 +7,7 @@ import { useSectionTheme } from './ThemeProvider'
 import { AccountMenu, ServicesMenu } from './AccountMenu'
 
 const NAV_LINKS = [
+  { href: '/courses', label: 'Courses' },
   { href: '/facilities', label: 'Facilities' },
   { href: '/#how-it-works', label: 'How it works' },
   { href: '/manage', label: 'For facilities' },
@@ -135,12 +136,12 @@ export default function SiteHeader() {
           {/* Actions */}
           <div className="hidden items-center gap-2 lg:flex">
             <Link
-              href="/facilities"
+              href="/services"
               className={[
                 'group inline-flex h-11 items-center gap-2 rounded-[12px] bg-teal-700 px-5 text-[0.9375rem] font-semibold text-white transition-all duration-200 hover:-translate-y-px hover:bg-teal-600 hover:shadow-lg hover:shadow-teal-900/20',
               ].join(' ')}
             >
-              Explore spaces
+              Book a service
               <svg
                 width="15"
                 height="15"
@@ -286,11 +287,11 @@ export default function SiteHeader() {
 
         <div className="flex flex-col gap-3 pt-8">
           <Link
-            href="/facilities"
+            href="/services"
             onClick={() => setMenuOpen(false)}
             className="inline-flex h-12 items-center justify-center rounded-[12px] bg-teal-700 px-6 text-[0.9375rem] font-semibold text-white"
           >
-            Explore spaces
+            Book a service
           </Link>
           <Link
             href="/auth/login"

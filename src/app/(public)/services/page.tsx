@@ -1,9 +1,9 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import { SERVICES } from '@/lib/services-data'
 import { RENTAL_SERVICE_LIST } from '@/lib/pricing'
 import Section, { Eyebrow, Rule } from '@/components/ui/Section'
 import { ButtonLink } from '@/components/ui/Button'
+import { Reveal } from '@/components/ui/Reveal'
 
 export const metadata: Metadata = {
   title: 'Services',
@@ -12,10 +12,6 @@ export const metadata: Metadata = {
 }
 
 export default function ServicesIndexPage() {
-  const clinical = SERVICES.filter(
-    (s) => s.category !== 'chair_rental' && s.category !== 'dummy_head',
-  )
-
   return (
     <>
       {/* ── Header ─────────────────────────────────────────────────── */}
@@ -25,15 +21,16 @@ export default function ServicesIndexPage() {
             <div className="col-span-12 lg:col-span-7">
               <Eyebrow>Services</Eyebrow>
               <h1 className="mt-6 font-display text-[clamp(2.5rem,6vw,4.5rem)] font-semibold leading-[1.0] tracking-[-0.035em]">
-                Equipment you can
+                Three ways to use
                 <br />
-                book by the hour.
+                a dental facility.
               </h1>
             </div>
             <div className="col-span-12 lg:col-span-4 lg:col-start-9">
               <p className="text-[1.0625rem] leading-relaxed text-graphite-700">
-                Three ways to benefit from a dental facility: rent a chair, rent
-                a phantom-head station, or register for a course.
+                Rent a chair, train at a phantom-head station, or register for a
+                course. Each one is a service a facility actually offers —
+                published with its real rate, and bookable online.
               </p>
             </div>
           </div>
@@ -100,8 +97,7 @@ export default function ServicesIndexPage() {
         </div>
       </Section>
 
-      {/* ── Clinical services from facilities ───────────────────────── */}
-      {/* Courses and practical training */}
+      {/* ── Courses and practical training ─────────────────────────── */}
       <Section theme="chalk" className="relative overflow-hidden">
         <div className="page py-16 md:py-20">
           <div className="grid-12 gap-y-12">
@@ -159,52 +155,55 @@ export default function ServicesIndexPage() {
         </div>
       </Section>
 
-      {clinical.length > 0 ? (
-        <Section theme="porcelain" className="relative overflow-hidden">
-          <div className="page py-16 md:py-20">
-            <div className="grid-12 gap-y-12">
-              <div className="col-span-12 lg:col-span-3">
-                <Eyebrow>From facilities</Eyebrow>
-                <h2 className="mt-5 font-display text-[clamp(1.5rem,2.6vw,2rem)] font-semibold tracking-[-0.025em]">
-                  Clinical services
-                </h2>
-                <p className="mt-4 text-[0.9375rem] leading-relaxed text-graphite-700">
-                  Published by individual facilities, with their own rates and
-                  availability.
-                </p>
-                <div className="mt-6">
-                  <ButtonLink href="/facilities" variant="secondary">
-                    Browse facilities
-                  </ButtonLink>
-                </div>
+      {/* ── How the journey continues ──────────────────────────────── */}
+      <Section theme="porcelain" className="relative overflow-hidden">
+        <div className="page py-20 md:py-28">
+          <div className="grid-12 gap-y-12">
+            <div className="col-span-12 lg:col-span-5">
+              <Eyebrow>After you choose</Eyebrow>
+              <h2 className="mt-5 font-display text-[clamp(1.75rem,3.2vw,2.5rem)] font-semibold leading-[1.08] tracking-[-0.03em]">
+                Pick a service. The facilities that offer it come next.
+              </h2>
+              <p className="mt-5 max-w-md text-[0.9375rem] leading-relaxed text-graphite-700">
+                Every service page leads to the facilities that provide it, with
+                their published rates. From there you choose a date and time,
+                and — where the facility publishes a room plan — the exact
+                station you will work at.
+              </p>
+              <div className="mt-8">
+                <Rule />
               </div>
-
-              <ul className="col-span-12 grid gap-x-10 sm:grid-cols-2 lg:col-span-8 lg:col-start-5">
-                {clinical.map((service) => (
-                  <li key={service.id} className="border-t border-stone-300 py-5">
-                    <Link
-                      href={`/services/${service.slug}`}
-                      className="group flex items-baseline justify-between gap-4"
-                    >
-                      <span>
-                        <span className="block font-display text-[1.0625rem] font-semibold text-graphite-900 transition-colors group-hover:text-teal-700">
-                          {service.name}
-                        </span>
-                        <span className="mt-1 block text-[0.8125rem] leading-relaxed text-slate-600">
-                          {service.tagline}
-                        </span>
-                      </span>
-                      <span className="tnum shrink-0 text-[0.9375rem] font-semibold text-teal-700">
-                        {service.price} EGP
-                      </span>
-                    </Link>
-                  </li>
-                ))}
-              </ul>
             </div>
+
+            <ol className="col-span-12 lg:col-span-6 lg:col-start-7">
+              {[
+                'Choose the service you need.',
+                'See the facilities offering it, with real rates.',
+                'Choose your date, time and duration.',
+                'Reserve your resource — down to the station.',
+                'Review the total and confirm with a deposit.',
+              ].map((step, index) => (
+                <Reveal
+                  as="li"
+                  key={step}
+                  delay={index * 0.05}
+                  className="flex items-baseline gap-5 border-t border-stone-300 py-5 first:border-t-0"
+                >
+                  <span
+                    aria-hidden="true"
+                    className="tnum shrink-0 font-display text-[0.8125rem] font-semibold tracking-[0.1em] text-teal-700"
+                  >
+                    {String(index + 1).padStart(2, '0')}
+                  </span>
+                  <p className="text-[1.0625rem] font-medium leading-snug text-graphite-900">
+                    {step}
+                  </p>
+                </Reveal>
+              ))}
+            </ol>
           </div>
-        </Section>
-      ) : null}
+        </div>
+      </Section>
     </>
   )
 }

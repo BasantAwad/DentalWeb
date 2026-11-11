@@ -30,6 +30,7 @@ export default function RoomPage({
   const [stations, setStations] = useState<Record<string, StationState>>(initialStations)
   const [selectedStationId, setSelectedStationId] = useState<string | null>(null)
   const [selectedStation, setSelectedStation] = useState<BlueprintStation | null>(null)
+  const [selectedResourceId, setSelectedResourceId] = useState<string | null>(null)
   const [loaded, setLoaded] = useState(false)
   const [message, setMessage] = useState('')
 
@@ -64,6 +65,10 @@ export default function RoomPage({
   ) => {
     setSelectedStation(station)
     setSelectedStationId(station.id)
+    // The backend resource the station maps to — what the booking flow
+    // actually reserves. Present in the station payload even before a date
+    // and time are chosen.
+    setSelectedResourceId(stations[station.id]?.resourceId ?? null)
   }
 
   const selectedLabel = useMemo(() => {
@@ -160,11 +165,15 @@ export default function RoomPage({
                 Back to facility
               </ButtonLink>
               <ButtonLink
-                href={selectedLabel ? `/facilities/${slug}/book` : `#`}
+                href={
+                  selectedResourceId
+                    ? `/facilities/${slug}/book?service=dummy_head&resource=${selectedResourceId}`
+                    : `#`
+                }
                 variant="on-dark"
                 size="lg"
                 withArrow
-                className={selectedLabel ? '' : 'pointer-events-none opacity-45'}
+                className={selectedResourceId ? '' : 'pointer-events-none opacity-45'}
               >
                 Continue to booking
               </ButtonLink>
