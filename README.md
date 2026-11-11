@@ -14,6 +14,10 @@ learning objectives and registration rules.
 Built with Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS v4,
 React Three Fiber and Supabase (Postgres + RLS).
 
+> **Project status:** The product is under active development. Routes,
+> configuration and scripts below describe the current application; broader
+> product requirements may describe intended behavior that is not yet live.
+
 ---
 
 ## Quick start
@@ -126,6 +130,7 @@ scripts/               extraction, inspection and verification tools
 | [`docs/CREATIVE_DIRECTION_AND_DESIGN_SYSTEM.md`](./docs/CREATIVE_DIRECTION_AND_DESIGN_SYSTEM.md) | The approved design direction |
 | [`docs/HIGH_FIDELITY_VISUAL_DESIGN_SPEC.md`](./docs/HIGH_FIDELITY_VISUAL_DESIGN_SPEC.md) | The approved visual specification |
 | [`docs/BOOKING_BUSINESS_RULES.md`](./docs/BOOKING_BUSINESS_RULES.md) | The confirmed booking rules |
+| [`docs/SOFTWARE_REQUIREMENTS_AND_PRODUCT_SPEC.md`](./docs/SOFTWARE_REQUIREMENTS_AND_PRODUCT_SPEC.md) | Product scope, workflows, business rules and open decisions |
 | [`docs/SOFTWARE_SPECIFICATION.md`](./docs/SOFTWARE_SPECIFICATION.md) | Product and architecture specification |
 | [`docs/UI_UX_WIREFRAMES.md`](./docs/UI_UX_WIREFRAMES.md) | Page-by-page wireframes |
 
@@ -168,3 +173,16 @@ owner's approval:
 them from the service's configured rate before any hold or charge is created.
 `supabase/migrations/0001_courses_and_accounts.sql` holds the course rules,
 which `scripts/verify-enrollment.mjs` checks against a real database.
+
+## Product decisions still to confirm
+
+- How the remaining rental balance is collected.
+- Rental cancellation, refund and rescheduling policies.
+- Whether facilities can require manual booking approval.
+- Course-specific payment, cancellation, refund and attendance rules.
+- Whether course capacity applies to the whole course or individual sessions.
+- Whether tooth selection or other practical-work details are required by a
+  facility.
+
+Until these decisions are confirmed, do not invent policies or imply that
+planned behavior is already implemented.
