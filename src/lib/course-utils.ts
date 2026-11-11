@@ -18,6 +18,24 @@ export interface RegistrationState {
 }
 
 /**
+ * Turn a course title into a URL-friendly slug: lowercase, non-alphanumeric
+ * characters collapsed into single dashes, trimmed, truncated and falling back
+ * to a generic value when nothing usable remains.
+ */
+export function slugifyCourseTitle(value: string): string {
+  const slug = value
+    .toLowerCase()
+    .normalize('NFKD')
+    .replace(/[^\w\s-]/g, '')
+    .trim()
+    .replace(/[\s_]+/g, '-')
+    .replace(/-+/g, '-')
+    .slice(0, 80)
+    .replace(/^-+|-+$/g, '')
+  return slug === '' ? 'course' : slug
+}
+
+/**
  * Whether registration can be started right now, and why not when it cannot.
  *
  * The same conditions are enforced by `enroll_in_course()` inside the

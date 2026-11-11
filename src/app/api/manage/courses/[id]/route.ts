@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getSessionUser } from '@/lib/auth'
 import { createServerSupabaseClient, isBackendConfigured } from '@/lib/supabase/server'
+import { slugifyCourseTitle } from '@/lib/course-utils'
 
 export const dynamic = 'force-dynamic'
 
@@ -68,6 +69,16 @@ export async function PATCH(
 
   if (typeof body.title === 'string' && body.title.trim()) {
     updates.title = body.title.trim()
+    // A renamed course gets a regenerated, still-unique slug so the public
+    // link keeps pointing at the same course instead of drifting.
+    const nextSlug = slugifyCourseTitle(String(updates.title))
+    const { data: clash } = await supabase
+      .from('courses')
+      .select('id')
+      .eq('slug', nextSlug)
+      .neq('id', id)
+      .maybeSingle()
+    updates.slug = clash ? `${nextSlug}-${Math.random().toString(36).slice(2, 7)}` : nextSlug
   }
   if (typeof body.description === 'string') updates.description = body.description.trim() || null
   if (typeof body.subject === 'string') updates.subject = body.subject.trim() || null

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getSessionUser, getFacilityMemberships } from '@/lib/auth'
 import { createServerSupabaseClient, isBackendConfigured } from '@/lib/supabase/server'
+import { slugifyCourseTitle } from '@/lib/course-utils'
 
 export const dynamic = 'force-dynamic'
 
@@ -240,7 +241,7 @@ export async function POST(request: Request) {
   const supabase = await createServerSupabaseClient()
 
   // A URL-friendly identifier, unique across the platform.
-  const baseSlug = slugify(title)
+  const baseSlug = slugifyCourseTitle(title)
   const { data: clash } = await supabase
     .from('courses')
     .select('id')
@@ -341,17 +342,4 @@ function stringArray(value: unknown): string[] {
     .map((item) => item.trim().slice(0, 200))
     .filter(Boolean)
     .slice(0, 30)
-}
-
-function slugify(value: string): string {
-  return (
-    value
-      .toLowerCase()
-      .normalize('NFKD')
-      .replace(/[^\w\s-]/g, '')
-      .trim()
-      .replace(/[\s_]+/g, '-')
-      .replace(/-+/g, '-')
-      .slice(0, 80) || 'course'
-  )
 }

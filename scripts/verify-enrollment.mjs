@@ -18,6 +18,10 @@ const migration = fs.readFileSync(
   path.join(root, 'supabase', 'migrations', '0001_courses_and_accounts.sql'),
   'utf8',
 )
+const slugMigration = fs.readFileSync(
+  path.join(root, 'supabase', 'migrations', '0002_course_slug_rules.sql'),
+  'utf8',
+)
 
 const db = await new PGlite()
 
@@ -38,6 +42,7 @@ await db.exec(`
 // The extensions are not needed for the test and are unavailable in PGlite.
 await db.exec(schema.replace(/CREATE EXTENSION[^;]+;/g, ''))
 await db.exec(migration)
+await db.exec(slugMigration)
 
 let failures = 0
 function check(label, condition, detail) {
@@ -116,6 +121,18 @@ for (const [key, name] of Object.entries({
 })) {
   await addUser(U[key], name)
 }
+
+// ── 0. Course slugs are required, unique and backfilled ─────────────────────
+const slugRows = await db.query(`SELECT COUNT(*)::int AS n, COUNT(slug) AS with_slug FROM courses`)
+check(
+  'every course has a unique slug',
+  slugRows.rows[0].with_slug === slugRows.rows[0].n,
+  slugRows.rows,
+)
+const clashRows = await db.query(
+  `SELECT slug, COUNT(*)::int AS n FROM courses GROUP BY slug HAVING COUNT(*) > 1`,
+)
+check('no course slug is duplicated', clashRows.rows.length === 0, clashRows.rows)
 
 // ── 1. A student can register ──────────────────────────────────────────────
 const first = await tryEnroll(U.one, U.one)
